@@ -5,8 +5,9 @@ from fastapi import FastAPI, Request, Response
 from pydantic import TypeAdapter, ValidationError
 
 from app import __version__
-from app.api import health
+from app.api import customers, health
 from app.api.errors import register_exception_handlers
+from app.core.clock import Clock, system_clock
 from app.core.config import Settings
 from app.core.ids import IdPrefix, RequestId, new_id
 from app.domain.repositories import Repositories
@@ -28,11 +29,13 @@ def _request_id_from(header: str | None) -> str:
 
 
 def create_app(
-    settings: Settings | None = None, repositories: Repositories | None = None
+    settings: Settings | None = None,
+    repositories: Repositories | None = None,
+    clock: Clock = system_clock,
 ) -> FastAPI:
     """Application factory. Run with ``uvicorn app.main:create_app --factory``."""
     settings = settings or Settings()
-    expose_docs = settings.app_env != "production"
+    expose_docs = settings.dev_actor_enabled
     app = FastAPI(
         title="KaamSetu API",
         version=__version__,
@@ -42,6 +45,7 @@ def create_app(
     )
     app.state.settings = settings
     app.state.repositories = repositories or build_repositories(settings)
+    app.state.clock = clock
 
     @app.middleware("http")
     async def request_context(
@@ -59,4 +63,5 @@ def create_app(
 
     register_exception_handlers(app)
     app.include_router(health.router, prefix="/api/v1")
+    app.include_router(customers.router, prefix="/api/v1")
     return app

@@ -20,6 +20,7 @@ def _clean_environment(monkeypatch: pytest.MonkeyPatch) -> None:
         "DYNAMODB_ENDPOINT_URL",
         "AWS_REGION",
         "DEV_BUSINESS_ID",
+        "DEMO_API_KEY",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -76,3 +77,47 @@ def test_the_provider_factory_selects_the_adapter() -> None:
 
     assert isinstance(memory.jobs, InMemoryJobRepository)
     assert isinstance(dynamodb.jobs, DynamoJobRepository)
+
+
+def _demo(**overrides: object) -> Settings:
+    values: dict[str, object] = {
+        "app_env": "demo",
+        "data_provider": "dynamodb",
+        "demo_api_key": "x" * 40,
+    }
+    return _load(**{**values, **overrides})  # type: ignore[arg-type]
+
+
+def test_demo_mode_needs_a_long_enough_key() -> None:
+    assert _demo().demo_actor_enabled
+    with pytest.raises(ValidationError, match="DEMO_API_KEY"):
+        _demo(demo_api_key="short")
+    with pytest.raises(ValidationError, match="DEMO_API_KEY"):
+        _demo(demo_api_key="   ")
+    with pytest.raises(ValidationError, match="DEMO_API_KEY"):
+        _demo(demo_api_key=None)
+
+
+def test_demo_mode_requires_durable_storage() -> None:
+    with pytest.raises(ValidationError, match="not allowed when APP_ENV=demo"):
+        _demo(data_provider="memory")
+
+
+def test_the_demo_key_is_a_secret_and_only_demo_mode_uses_it() -> None:
+    settings = _demo()
+
+    assert "x" * 40 not in repr(settings)
+    assert not settings.dev_actor_enabled
+    assert not _load(app_env="production", data_provider="dynamodb").demo_actor_enabled
+    assert not _load(app_env="development").demo_actor_enabled
+
+
+def test_the_demo_key_is_read_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("APP_ENV", "demo")
+    monkeypatch.setenv("DATA_PROVIDER", "dynamodb")
+    monkeypatch.setenv("DEMO_API_KEY", "e" * 40)
+
+    settings = Settings(_env_file=None)  # type: ignore[call-arg]
+
+    assert settings.demo_api_key is not None
+    assert settings.demo_api_key.get_secret_value() == "e" * 40
