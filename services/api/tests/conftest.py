@@ -10,6 +10,7 @@ from app.providers.persistence.dynamodb.client import build_resource
 from app.providers.persistence.dynamodb.repositories import build_dynamodb_repositories
 from app.providers.persistence.dynamodb.table import create_table
 from app.providers.persistence.memory import build_in_memory_repositories
+from tests.api_support import Api, build_api
 
 TEST_TABLE = "kaamsetu-test"
 
@@ -48,3 +49,9 @@ def repos(request: pytest.FixtureRequest) -> Iterator[Repositories]:
             yield build_dynamodb_repositories(resource, table_name)
         finally:
             resource.Table(table_name).delete()
+
+
+@pytest.fixture
+def api(repos: Repositories) -> Api:
+    """The HTTP API over every persistence adapter, acting as the fixed development identity."""
+    return build_api(repos)

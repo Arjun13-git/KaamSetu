@@ -41,3 +41,23 @@ def create_customer(
 
 def get_customer(ctx: RequestContext, repos: Repositories, customer_id: str) -> Customer:
     return repos.customers.get(ctx.business_id, customer_id)
+
+
+def find_customers(
+    ctx: RequestContext,
+    repos: Repositories,
+    *,
+    query: str | None,
+    phone: str | None,
+    limit: int,
+) -> list[Customer]:
+    """Search within the caller's business by name and/or phone; with neither, list customers."""
+    if phone is not None:
+        found = repos.customers.find_by_phone(ctx.business_id, phone)
+        if query:
+            needle = query.casefold()
+            found = [c for c in found if needle in c.name.casefold()]
+        return found[:limit]
+    if query:
+        return repos.customers.search_by_name(ctx.business_id, query, limit=limit)
+    return repos.customers.list(ctx.business_id, limit=limit)

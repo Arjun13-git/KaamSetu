@@ -1,7 +1,7 @@
 import hmac
 from typing import Annotated
 
-from fastapi import Depends, Request
+from fastapi import Depends, Header, Request
 
 from app.core.clock import Clock
 from app.core.config import Settings
@@ -31,6 +31,10 @@ def get_request_id(request: Request) -> str:
     request_id: str = request.state.request_id
     return request_id
 
+
+IdempotencyKeyHeader = Annotated[
+    str | None, Header(alias="Idempotency-Key", pattern=r"^[A-Za-z0-9_:.-]{1,128}$")
+]
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 RepositoriesDep = Annotated[Repositories, Depends(get_repositories)]
