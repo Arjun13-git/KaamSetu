@@ -150,9 +150,9 @@ SCENARIOS: dict[str, dict[str, Any]] = {
         "records": {"customer": "farhan_qureshi", "job": "fridge_burning_smell_farhan"},
         "try": {
             "phone": "90000 20004",
-            "message": "AC se chingari nikal rahi hai aur jalne ki smell aa rahi hai",
-            "expect": "urgency safety_critical, safety_concern true, description is the "
-            "customer's report only",
+            "message": "Fridge se chingari nikal rahi hai aur jalne ki smell aa rahi hai",
+            "expect": "a second job on the fridge, urgency safety_critical, safety_concern "
+            "true, description is the customer's report only",
         },
     },
     "job_lifecycle": {

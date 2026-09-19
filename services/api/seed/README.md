@@ -104,9 +104,9 @@ header makes retries safe).
    raha. Indiranagar mein hoon. Kal aa sakte ho?"* gives customer and asset NEW, needing review,
    and creates no job and no customer.
 4. **Safety-critical request.** Farhan Qureshi's fridge job is already on the board, unassigned.
-   Phone `90000 20004`: *"AC se chingari nikal rahi hai aur jalne ki smell aa rahi hai"* is flagged,
-   urgency becomes `safety_critical`, and the description stays the customer's report, never a
-   diagnosis.
+   Phone `90000 20004`: *"Fridge se chingari nikal rahi hai aur jalne ki smell aa rahi hai"* is
+   flagged, creates a second job on the fridge with urgency `safety_critical`, and the description
+   stays the customer's report, never a diagnosis.
 5. **Technician and job lifecycle.** Every job status is on the board across three technicians.
    Try assigning Anil (inactive): it is refused. Drive `ro_flow_low_meena` through
    assign, start and complete, and its water purifier's history gains a second event.
