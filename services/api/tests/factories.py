@@ -3,6 +3,7 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from app.core.context import Actor, RequestContext
 from app.core.ids import IdPrefix, new_id
 from app.domain.asset import Asset
 from app.domain.business import Business
@@ -17,6 +18,10 @@ NOW = datetime(2026, 9, 19, 10, 0, tzinfo=UTC)
 LATER = NOW + timedelta(hours=1)
 BUSINESS_ID = "bus_test"
 OTHER_BUSINESS_ID = "bus_other"
+
+
+def make_ctx(business_id: str = BUSINESS_ID) -> RequestContext:
+    return RequestContext(Actor(business_id=business_id, actor_id="usr_test"), "req_test0001")
 
 
 def make_business(**overrides: Any) -> Business:
