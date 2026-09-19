@@ -84,8 +84,8 @@ else uses it.
 
 - No real authentication, roles or per-user identity yet.
 - The table is on-demand with no point-in-time recovery and is deleted with the stack.
-- Lambda memory (1024 MB) and timeout (15 s) suit the current endpoints; AI calls will need a longer
-  timeout.
+- The 28 s Lambda timeout covers two bounded model attempts (12 s each); API Gateway cuts requests
+  off at 30 s, so it cannot be raised further.
 - Bedrock needs the account's Anthropic use-case details completed once; until then intake
   reports `manual_entry_required` (the request is kept) and the logs show `ResourceNotFoundException`.
 - OpenSearch and S3 attachments are not part of this stack yet, so photos are shown to the model and
