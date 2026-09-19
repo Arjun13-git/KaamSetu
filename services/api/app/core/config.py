@@ -1,6 +1,7 @@
 from typing import Literal, Self
+from zoneinfo import ZoneInfo
 
-from pydantic import SecretStr, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.core.ids import ActorId, BusinessId
@@ -31,6 +32,17 @@ class Settings(BaseSettings):
     aws_region: str | None = None
     aws_profile: str | None = None
 
+    # Language model used for intake extraction. ``bedrock`` is the only implemented provider; any
+    # other value leaves AI unavailable and intake falls back to manual entry. The model id is
+    # configuration, never code.
+    llm_provider: Literal["bedrock", "ollama", "disabled"] = "disabled"
+    llm_model: str | None = None
+    ai_timeout_seconds: float = Field(default=12.0, gt=0, le=25)
+    ai_max_retries: int = Field(default=1, ge=0, le=2)
+
+    # Business timezone to use when a business has no record of its own yet.
+    default_timezone: str = "UTC"
+
     # The fixed identity used in development, test and demo. Tenant identity is always decided
     # server-side; it is never read from a request header, query string or body.
     dev_business_id: BusinessId = "bus_demo"
@@ -45,6 +57,20 @@ class Settings(BaseSettings):
     def _blank_means_unset(cls, value: object) -> object:
         return None if isinstance(value, str) and not value.strip() else value
 
+    @field_validator("llm_model", mode="before")
+    @classmethod
+    def _blank_model_means_unset(cls, value: object) -> object:
+        return None if isinstance(value, str) and not value.strip() else value
+
+    @field_validator("default_timezone")
+    @classmethod
+    def _known_timezone(cls, value: str) -> str:
+        try:
+            ZoneInfo(value)
+        except (KeyError, ValueError) as exc:
+            raise ValueError(f"unknown timezone: {value!r}") from exc
+        return value
+
     @field_validator("demo_api_key", mode="before")
     @classmethod
     def _blank_key_means_unset(cls, value: object) -> object:
@@ -54,6 +80,12 @@ class Settings(BaseSettings):
     def _deployed_environments_need_durable_storage(self) -> Self:
         if self.app_env in ("demo", "production") and self.data_provider == "memory":
             raise ValueError(f"DATA_PROVIDER=memory is not allowed when APP_ENV={self.app_env}")
+        return self
+
+    @model_validator(mode="after")
+    def _bedrock_needs_a_model(self) -> Self:
+        if self.llm_provider == "bedrock" and not self.llm_model:
+            raise ValueError("LLM_PROVIDER=bedrock requires LLM_MODEL")
         return self
 
     @model_validator(mode="after")

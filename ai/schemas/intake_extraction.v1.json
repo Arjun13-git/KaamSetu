@@ -1,0 +1,272 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "intent": {
+      "enum": [
+        "service_request",
+        "information_request",
+        "follow_up",
+        "cancellation",
+        "status_query",
+        "unknown"
+      ],
+      "title": "Intent",
+      "type": "string"
+    },
+    "service_type": {
+      "enum": [
+        "repair",
+        "installation",
+        "maintenance",
+        "inspection",
+        "replacement",
+        "unknown"
+      ],
+      "title": "ServiceType",
+      "type": "string"
+    },
+    "customer_reference": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Customer Reference"
+    },
+    "asset": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "air_conditioner",
+            "refrigerator",
+            "washing_machine",
+            "microwave",
+            "television",
+            "water_purifier",
+            "computer",
+            "printer",
+            "electrical",
+            "plumbing",
+            "other",
+            "unknown"
+          ],
+          "title": "AssetType",
+          "type": "string"
+        },
+        "brand": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Brand"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Model"
+        }
+      },
+      "required": [
+        "type",
+        "brand",
+        "model"
+      ],
+      "title": "AssetMention",
+      "type": "object"
+    },
+    "problem": {
+      "additionalProperties": false,
+      "description": "What the customer reported. Symptoms as stated; never a diagnosis of the cause.",
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Description"
+        },
+        "urgency": {
+          "anyOf": [
+            {
+              "enum": [
+                "low",
+                "normal",
+                "high",
+                "safety_critical"
+              ],
+              "title": "Urgency",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "symptoms": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "title": "Symptoms",
+          "type": "array"
+        }
+      },
+      "required": [
+        "description",
+        "urgency"
+      ],
+      "title": "ProblemMention",
+      "type": "object"
+    },
+    "time_preference": {
+      "additionalProperties": false,
+      "description": "A preferred visit time in the business's local time; absent parts are ``null``.",
+      "properties": {
+        "date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Date"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start"
+        },
+        "end": {
+          "anyOf": [
+            {
+              "format": "time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End"
+        }
+      },
+      "title": "TimePreference",
+      "type": "object"
+    },
+    "confidence": {
+      "additionalProperties": false,
+      "properties": {
+        "overall": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Overall",
+          "type": "number"
+        },
+        "asset": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Asset",
+          "type": "number"
+        },
+        "problem": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Problem",
+          "type": "number"
+        },
+        "schedule": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Schedule",
+          "type": "number"
+        }
+      },
+      "required": [
+        "overall",
+        "asset",
+        "problem",
+        "schedule"
+      ],
+      "title": "Confidence",
+      "type": "object"
+    },
+    "missing_information": {
+      "items": {
+        "maxLength": 200,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Missing Information",
+      "type": "array"
+    },
+    "sources": {
+      "additionalProperties": {
+        "description": "Where a field's value came from.",
+        "enum": [
+          "explicit_text",
+          "image",
+          "conversation_context",
+          "retrieved_history",
+          "inferred",
+          "unknown"
+        ],
+        "title": "Source",
+        "type": "string"
+      },
+      "title": "Sources",
+      "type": "object"
+    }
+  },
+  "required": [
+    "intent",
+    "service_type",
+    "customer_reference",
+    "asset",
+    "problem",
+    "time_preference",
+    "confidence"
+  ],
+  "title": "IntakeExtraction",
+  "type": "object"
+}

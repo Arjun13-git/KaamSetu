@@ -64,3 +64,15 @@ class DuplicateRequestError(DomainError):
 
 class StorageError(DomainError):
     code = ErrorCode.STORAGE_ERROR
+
+
+class AiUnavailableError(DomainError):
+    """The model could not be reached or refused the call. The caller falls back to manual entry."""
+
+    code = ErrorCode.AI_UNAVAILABLE
+
+
+class AiInvalidOutputError(DomainError):
+    """The model answered, but not with a record that passes schema validation."""
+
+    code = ErrorCode.AI_INVALID_OUTPUT
