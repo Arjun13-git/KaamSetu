@@ -41,3 +41,7 @@ reports/generated/
 
 # Local engineering specification
 System-Design/
+
+
+# Local Claude Code instructions
+CLAUDE.md
