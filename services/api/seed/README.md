@@ -21,6 +21,9 @@ python -m seed --as-of 2026-09-19T10:00:00+00:00   # anchor relative times (defa
 Add `--create-table` against a local endpoint (`DYNAMODB_ENDPOINT_URL`) to create the table first.
 In AWS the table comes from the infrastructure template; the script refuses to create one.
 
+`--verify` checks the *pristine* dataset. Once people use the demo (new requests, jobs, events) it
+reports the differences as FAIL lines and a different fingerprint; that is its job.
+
 To reset a demo table, delete its items and load again: the result is identical
 (same ids, same times, same fingerprint).
 
