@@ -20,7 +20,7 @@ from app.core.errors import (
 )
 from app.core.ids import AttachmentId, IdPrefix, ServiceRequestId, new_id
 from app.domain.asset import Asset
-from app.domain.audit import AuditEvent
+from app.domain.audit import AuditEvent, build_audit
 from app.domain.base import DomainModel, LongText, ShortText
 from app.domain.customer import Customer
 from app.domain.enums import (
@@ -268,17 +268,7 @@ def _audit(
     job_id: str,
     metadata: dict[str, str | int | bool | None],
 ) -> AuditEvent:
-    return AuditEvent(
-        audit_id=new_id(IdPrefix.AUDIT),
-        business_id=ctx.business_id,
-        actor_id=ctx.actor_id,
-        action=action,
-        entity_type=AuditEntityType.JOB,
-        entity_id=job_id,
-        timestamp=now,
-        request_id=ctx.request_id,
-        metadata=metadata,
-    )
+    return build_audit(ctx, now, action, AuditEntityType.JOB, job_id, metadata)
 
 
 def _summarize(job: Job, completion: JobCompletion) -> str:
