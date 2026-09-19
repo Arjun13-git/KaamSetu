@@ -38,3 +38,6 @@ htmlcov/
 
 # Generated
 reports/generated/
+
+# Local engineering specification
+System-Design/
