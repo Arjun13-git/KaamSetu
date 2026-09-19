@@ -1,0 +1,40 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+.next/
+out/
+.turbo/
+
+# Build / local state
+*.log
+coverage/
+htmlcov/
+.localstack/
+.terraform/
+.aws-sam/
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Generated
+reports/generated/
