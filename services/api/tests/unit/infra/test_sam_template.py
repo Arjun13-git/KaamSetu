@@ -99,9 +99,20 @@ def test_the_demo_key_is_a_hidden_required_parameter_with_no_default(
     assert "Default" not in parameter
 
 
-def test_the_function_can_only_read_write_and_query_its_own_table(template: dict[str, Any]) -> None:
+def _statements(template: dict[str, Any]) -> dict[str, dict[str, Any]]:
     (policy,) = _function(template)["Policies"]
-    (statement,) = policy["Statement"]
+    return {statement["Sid"]: statement for statement in policy["Statement"]}
+
+
+def test_the_function_has_exactly_two_grants_and_no_managed_policy_beyond_the_default(
+    template: dict[str, Any],
+) -> None:
+    assert set(_statements(template)) == {"KaamSetuTableAccess", "InvokeTheConfiguredModelOnly"}
+    assert "ManagedPolicyArns" not in _function(template)
+
+
+def test_the_function_can_only_read_write_and_query_its_own_table(template: dict[str, Any]) -> None:
+    statement = _statements(template)["KaamSetuTableAccess"]
 
     assert statement["Effect"] == "Allow"
     assert set(statement["Action"]) == {"dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query"}
@@ -109,6 +120,54 @@ def test_the_function_can_only_read_write_and_query_its_own_table(template: dict
         {"Fn::GetAtt": "DataTable.Arn"},
         {"Fn::Sub": "${DataTable.Arn}/index/*"},
     ]
+
+
+def test_the_function_can_invoke_only_the_configured_bedrock_model(
+    template: dict[str, Any],
+) -> None:
+    statement = _statements(template)["InvokeTheConfiguredModelOnly"]
+    resources = [r["Fn::Sub"] for r in statement["Resource"]]
+
+    assert statement["Effect"] == "Allow"
+    assert statement["Action"] == ["bedrock:InvokeModel"]  # nothing else: no listing, no agents
+    assert resources == [
+        "arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}"
+        ":inference-profile/${BedrockModelId}",
+        "arn:${AWS::Partition}:bedrock:::foundation-model/${BedrockFoundationModelId}",
+        "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${BedrockFoundationModelId}",
+    ]
+
+
+def test_the_bedrock_parameters_name_one_model_and_its_profile(template: dict[str, Any]) -> None:
+    profile = template["Parameters"]["BedrockModelId"]["Default"]
+    foundation = template["Parameters"]["BedrockFoundationModelId"]["Default"]
+
+    assert profile == "global.anthropic.claude-sonnet-4-6"
+    assert profile.endswith(foundation)  # the profile fronts exactly this foundation model
+    assert "*" not in profile + foundation
+
+
+def test_the_function_is_configured_for_bedrock_from_parameters_not_literals(
+    template: dict[str, Any],
+) -> None:
+    variables = _function(template)["Environment"]["Variables"]
+
+    assert variables["LLM_PROVIDER"] == "bedrock"
+    assert variables["LLM_MODEL"] == {"Ref": "BedrockModelId"}
+    assert variables["DEFAULT_TIMEZONE"] == {"Ref": "DefaultTimezone"}
+
+
+def test_the_timeout_fits_every_model_attempt_and_api_gateways_limit(
+    template: dict[str, Any],
+) -> None:
+    function = _function(template)
+    variables = function["Environment"]["Variables"]
+    worst_case_model_time = float(variables["AI_TIMEOUT_SECONDS"]) * (
+        1 + int(variables["AI_MAX_RETRIES"])
+    )
+
+    assert function["Timeout"] > worst_case_model_time  # leaves room for storage and start-up
+    assert function["Timeout"] < 30  # API Gateway (HTTP API) integration limit
 
 
 def test_no_resource_in_the_template_is_a_wildcard_grant(template: dict[str, Any]) -> None:

@@ -14,6 +14,20 @@ Parameters:
     Type: Number
     Default: 14
     Description: How long CloudWatch keeps the API logs.
+  BedrockModelId:
+    Type: String
+    Default: global.anthropic.claude-sonnet-4-6
+    Description: >-
+      Bedrock inference profile used for intake extraction. The function may invoke this model
+      and nothing else.
+  BedrockFoundationModelId:
+    Type: String
+    Default: anthropic.claude-sonnet-4-6
+    Description: The foundation model behind the inference profile (needed for the IAM policy).
+  DefaultTimezone:
+    Type: String
+    Default: Asia/Kolkata
+    Description: Timezone for reading relative dates until the business has a record of its own.
 
 Resources:
   # Must mirror app/providers/persistence/dynamodb/table.py (a test enforces this).
@@ -73,7 +87,9 @@ Resources:
       Runtime: python3.14
       Architectures: [x86_64]
       MemorySize: 1024
-      Timeout: 15
+      # Two bounded model attempts (AI_TIMEOUT_SECONDS each) plus storage must fit, and API Gateway
+      # cuts requests off at 30 seconds.
+      Timeout: 28
       LoggingConfig:
         LogGroup: !Ref ApiLogGroup
       Environment:
@@ -85,8 +101,14 @@ Resources:
           DEV_BUSINESS_ID: bus_demo
           DEV_ACTOR_ID: usr_demo
           LOG_LEVEL: INFO
-      # Least privilege: exactly the DynamoDB calls the repositories make (transactional writes
-      # need only PutItem), on this table and its indexes.
+          LLM_PROVIDER: bedrock
+          LLM_MODEL: !Ref BedrockModelId
+          AI_TIMEOUT_SECONDS: "12"
+          AI_MAX_RETRIES: "1"
+          DEFAULT_TIMEZONE: !Ref DefaultTimezone
+      # Least privilege. DynamoDB: exactly the calls the repositories make (transactional writes need
+      # only PutItem), on this table and its indexes. Bedrock: invoking the one configured model
+      # (the Converse API is authorized by bedrock:InvokeModel), through its inference profile.
       Policies:
         - Statement:
             - Sid: KaamSetuTableAccess
@@ -98,6 +120,14 @@ Resources:
               Resource:
                 - !GetAtt DataTable.Arn
                 - !Sub "${DataTable.Arn}/index/*"
+            - Sid: InvokeTheConfiguredModelOnly
+              Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource:
+                - !Sub "arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/${BedrockModelId}"
+                - !Sub "arn:${AWS::Partition}:bedrock:::foundation-model/${BedrockFoundationModelId}"
+                - !Sub "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${BedrockFoundationModelId}"
       Events:
         Proxy:
           Type: HttpApi
