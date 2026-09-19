@@ -6,10 +6,12 @@ from typing import Any, Literal, Protocol
 
 from app.core.errors import AiUnavailableError
 
+ImageFormat = Literal["jpeg", "png", "webp", "gif"]
+
 
 @dataclass(frozen=True, slots=True)
 class ImageInput:
-    format: Literal["jpeg", "png", "webp", "gif"]
+    format: ImageFormat
     data: bytes
 
 

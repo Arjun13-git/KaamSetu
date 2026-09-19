@@ -5,7 +5,18 @@ from fastapi import FastAPI, Request, Response
 from pydantic import TypeAdapter, ValidationError
 
 from app import __version__
-from app.api import assets, customers, health, history, jobs, service_requests, technicians
+from app.ai.extractor import IntakeExtractor
+from app.ai.factory import build_extractor
+from app.api import (
+    assets,
+    customers,
+    health,
+    history,
+    intake,
+    jobs,
+    service_requests,
+    technicians,
+)
 from app.api.errors import register_exception_handlers
 from app.core.clock import Clock, system_clock
 from app.core.config import Settings
@@ -32,6 +43,7 @@ def create_app(
     settings: Settings | None = None,
     repositories: Repositories | None = None,
     clock: Clock = system_clock,
+    extractor: IntakeExtractor | None = None,
 ) -> FastAPI:
     """Application factory. Run with ``uvicorn app.main:create_app --factory``."""
     settings = settings or Settings()
@@ -46,6 +58,7 @@ def create_app(
     app.state.settings = settings
     app.state.repositories = repositories or build_repositories(settings)
     app.state.clock = clock
+    app.state.extractor = extractor or build_extractor(settings)
 
     @app.middleware("http")
     async def request_context(
@@ -70,6 +83,7 @@ def create_app(
         jobs.router,
         history.router,
         service_requests.router,
+        intake.router,
     ):
         app.include_router(router, prefix="/api/v1")
     return app

@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from app.ai.schemas import StoredExtraction
 from app.core.context import RequestContext
 from app.core.errors import DomainValidationError
 from app.core.ids import AssetId, CustomerId
@@ -11,6 +12,7 @@ from app.domain.job import TimeSlot
 from app.domain.repositories import Repositories
 from app.domain.service_request import ServiceRequest
 from app.services.job_service import JobCreation, create_job_for_request
+from app.services.scheduling import business_timezone, preferred_slot
 
 _MAX_DESCRIPTION = 2000
 
@@ -28,6 +30,14 @@ class ConfirmJob(DomainModel):
     description: LongText | None = None
     urgency: Urgency | None = None
     preferred_slot: TimeSlot | None = None
+
+
+class ProposedJob(DomainModel):
+    service_type: ServiceType
+    description: str | None
+    urgency: Urgency
+    preferred_slot: TimeSlot | None
+    source: JobSource
 
 
 def get_request(
@@ -52,10 +62,13 @@ def confirm_job(
     now: datetime,
     service_request_id: str,
     decision: ConfirmJob,
+    *,
+    default_timezone: str,
 ) -> JobCreation:
     """Create the job for a request. Repeating the call returns the job that already exists."""
     request = repos.service_requests.get(ctx.business_id, service_request_id)
-    proposed = proposed_job_fields(request)
+    timezone = business_timezone(ctx, repos, default_timezone)
+    proposed = proposed_job_fields(request, timezone)
 
     description = decision.description or proposed.description
     if description is None:
@@ -77,21 +90,27 @@ def confirm_job(
     )
 
 
-class ProposedJob(DomainModel):
-    service_type: ServiceType
-    description: str | None
-    urgency: Urgency
-    preferred_slot: TimeSlot | None
-    source: JobSource
-
-
-def proposed_job_fields(request: ServiceRequest) -> ProposedJob:
-    """What a job for this request would contain if the person supplies nothing else."""
+def proposed_job_fields(request: ServiceRequest, timezone: str) -> ProposedJob:
+    """What a job for this request would contain if the person supplies nothing else: the
+    validated extraction when there is one, otherwise the customer's own words. Anything unknown
+    stays unknown (an unknown service type, no preferred time)."""
     raw = request.raw_text
+    fallback_description = raw if len(raw) <= _MAX_DESCRIPTION else None
+
+    if request.extraction is None:
+        return ProposedJob(
+            service_type=ServiceType.UNKNOWN,
+            description=fallback_description,
+            urgency=Urgency.NORMAL,
+            preferred_slot=None,
+            source=JobSource.MANUAL,
+        )
+
+    data = StoredExtraction.model_validate(request.extraction).data
     return ProposedJob(
-        service_type=ServiceType.UNKNOWN,
-        description=raw if len(raw) <= _MAX_DESCRIPTION else None,
-        urgency=Urgency.NORMAL,
-        preferred_slot=None,
-        source=JobSource.MANUAL,
+        service_type=data.service_type,
+        description=data.problem.description or fallback_description,
+        urgency=data.problem.urgency or Urgency.NORMAL,
+        preferred_slot=preferred_slot(data.time_preference, timezone),
+        source=JobSource.INTAKE,
     )

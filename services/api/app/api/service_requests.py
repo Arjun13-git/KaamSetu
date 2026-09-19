@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
 
-from app.api.deps import ClockDep, RepositoriesDep, RequestContextDep
+from app.api.deps import ClockDep, RepositoriesDep, RequestContextDep, SettingsDep
 from app.api.envelope import SuccessEnvelope
 from app.api.schemas import JobOut, ServiceRequestOut, success
 from app.core.ids import ServiceRequestId
@@ -40,10 +40,13 @@ def create_job_for_request(
     ctx: RequestContextDep,
     repos: RepositoriesDep,
     clock: ClockDep,
+    settings: SettingsDep,
 ) -> SuccessEnvelope[JobOut]:
     """Confirm a request as a job for the chosen customer and asset. If the request already has a
     job, that job is returned (200) and nothing new is created."""
-    creation = service_request_service.confirm_job(ctx, repos, clock(), service_request_id, body)
+    creation = service_request_service.confirm_job(
+        ctx, repos, clock(), service_request_id, body, default_timezone=settings.default_timezone
+    )
     if not creation.created:
         response.status_code = 200
         response.headers["Idempotent-Replay"] = "true"

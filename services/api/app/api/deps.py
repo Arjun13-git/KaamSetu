@@ -3,6 +3,7 @@ from typing import Annotated
 
 from fastapi import Depends, Header, Request
 
+from app.ai.extractor import IntakeExtractor
 from app.core.clock import Clock
 from app.core.config import Settings
 from app.core.context import Actor, RequestContext
@@ -27,6 +28,11 @@ def get_clock(request: Request) -> Clock:
     return clock
 
 
+def get_extractor(request: Request) -> IntakeExtractor:
+    extractor: IntakeExtractor = request.app.state.extractor
+    return extractor
+
+
 def get_request_id(request: Request) -> str:
     request_id: str = request.state.request_id
     return request_id
@@ -39,6 +45,7 @@ IdempotencyKeyHeader = Annotated[
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 RepositoriesDep = Annotated[Repositories, Depends(get_repositories)]
 ClockDep = Annotated[Clock, Depends(get_clock)]
+ExtractorDep = Annotated[IntakeExtractor, Depends(get_extractor)]
 RequestIdDep = Annotated[str, Depends(get_request_id)]
 
 

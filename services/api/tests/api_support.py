@@ -102,7 +102,7 @@ class Api:
         return {"job": started, "customer": customer, "asset": asset, "technician": technician}
 
 
-def build_api(repos: Repositories, **app_kwargs: Any) -> Api:
+def build_api(repos: Repositories, *, settings: Settings | None = None, **app_kwargs: Any) -> Api:
     app_kwargs.setdefault("clock", TickingClock())
-    app = create_app(dev_settings(), repositories=repos, **app_kwargs)
+    app = create_app(settings or dev_settings(), repositories=repos, **app_kwargs)
     return Api(TestClient(app), repos)
