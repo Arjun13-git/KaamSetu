@@ -11,3 +11,16 @@
 
 The model only proposes structured data. Validation, guards, entity resolution and every write are
 deterministic application code.
+
+## Model notes
+
+The deployed model is Amazon Nova Lite (`amazon.nova-lite-v1:0`), chosen by configuration only. It
+accepts the exact interaction (forced tool call, the full inlined schema, `temperature` 0, image
+input) and follows the prompt's safety and injection rules. Observed limitations, measured over 20
+varied messages:
+
+- About 15% of answers (3 of 20) contain the literal string `"null"` instead of JSON `null` in
+  optional fields, mostly for messages that name a person or mix languages. These fail schema
+  validation, are retried once, and then fall back to manual entry; nothing is lost.
+- It often sets `problem.urgency` to `normal` and confidence near 1.0 without a stated reason, so
+  its confidence is less informative than a larger model's.

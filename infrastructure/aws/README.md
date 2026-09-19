@@ -11,7 +11,7 @@ client ──► API Gateway (HTTP API, throttled) ──► Lambda (python3.14,
 | Resource | Notes |
 |---|---|
 | `AWS::DynamoDB::Table` | On-demand; key layout mirrors `services/api/app/providers/persistence/dynamodb/table.py` (a test enforces it) |
-| `AWS::Lambda::Function` | Handler `app.lambda_handler.handler`, 28 s timeout. Policy: `GetItem`, `PutItem`, `Query` on the table and its indexes, and `bedrock:InvokeModel` on the one configured inference profile and its foundation-model ARNs (no wildcards) |
+| `AWS::Lambda::Function` | Handler `app.lambda_handler.handler`, 28 s timeout. Policy: `GetItem`, `PutItem`, `Query` on the table and its indexes, and `bedrock:InvokeModel` on the one configured foundation model in this region (no wildcards) |
 | `AWS::ApiGatewayV2::Api` + stage | `$default` stage, 10 req/s steady, burst 20 |
 | `AWS::Logs::LogGroup` | Finite retention |
 
@@ -86,7 +86,10 @@ else uses it.
 - The table is on-demand with no point-in-time recovery and is deleted with the stack.
 - The 28 s Lambda timeout covers two bounded model attempts (12 s each); API Gateway cuts requests
   off at 30 s, so it cannot be raised further.
-- Bedrock needs the account's Anthropic use-case details completed once; until then intake
-  reports `manual_entry_required` (the request is kept) and the logs show `ResourceNotFoundException`.
+- Intake uses Amazon Nova Lite (`amazon.nova-lite-v1:0`). Anthropic models on Bedrock need an AWS
+  Marketplace subscription with a valid payment method and were not used. Set the `BedrockModelId`
+  parameter to change the model; the grant follows it.
+- Nova Lite sometimes writes the string `"null"` instead of JSON `null` (see `ai/README.md`). Strict
+  validation rejects those answers, and intake falls back to manual entry with the request kept.
 - OpenSearch and S3 attachments are not part of this stack yet, so photos are shown to the model and
   not stored.

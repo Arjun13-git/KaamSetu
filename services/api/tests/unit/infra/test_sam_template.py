@@ -126,25 +126,22 @@ def test_the_function_can_invoke_only_the_configured_bedrock_model(
     template: dict[str, Any],
 ) -> None:
     statement = _statements(template)["InvokeTheConfiguredModelOnly"]
-    resources = [r["Fn::Sub"] for r in statement["Resource"]]
 
     assert statement["Effect"] == "Allow"
     assert statement["Action"] == ["bedrock:InvokeModel"]  # nothing else: no listing, no agents
-    assert resources == [
-        "arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}"
-        ":inference-profile/${BedrockModelId}",
-        "arn:${AWS::Partition}:bedrock:::foundation-model/${BedrockFoundationModelId}",
-        "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${BedrockFoundationModelId}",
-    ]
+    one_model_in_this_region = (
+        "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${BedrockModelId}"
+    )
+    assert statement["Resource"] == [{"Fn::Sub": one_model_in_this_region}]  # no wildcard
+    assert "Condition" not in statement
 
 
-def test_the_bedrock_parameters_name_one_model_and_its_profile(template: dict[str, Any]) -> None:
-    profile = template["Parameters"]["BedrockModelId"]["Default"]
-    foundation = template["Parameters"]["BedrockFoundationModelId"]["Default"]
+def test_the_bedrock_model_is_one_parameter_with_no_wildcard(template: dict[str, Any]) -> None:
+    parameters = template["Parameters"]
 
-    assert profile == "global.anthropic.claude-sonnet-4-6"
-    assert profile.endswith(foundation)  # the profile fronts exactly this foundation model
-    assert "*" not in profile + foundation
+    assert parameters["BedrockModelId"]["Default"] == "amazon.nova-lite-v1:0"
+    assert "*" not in parameters["BedrockModelId"]["Default"]
+    assert "BedrockFoundationModelId" not in parameters  # no second model can be authorized
 
 
 def test_the_function_is_configured_for_bedrock_from_parameters_not_literals(

@@ -52,7 +52,9 @@ extraction and candidates visible. If the model is unavailable or answers invali
 without calling the model again. Safety wording (sparking, smoke, burning smell, ...) is detected
 without the model and only ever raises urgency.
 
-Configure the model with `LLM_PROVIDER=bedrock` and `LLM_MODEL=<inference profile or model id>`.
+Configure the model with `LLM_PROVIDER=bedrock` and `LLM_MODEL=<Bedrock model id>` (the deployed
+stack uses `amazon.nova-lite-v1:0`). The application is model-agnostic: only the adapter in
+`app/ai/bedrock.py` knows the provider.
 
 ## Authentication
 

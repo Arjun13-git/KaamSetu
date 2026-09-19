@@ -16,14 +16,10 @@ Parameters:
     Description: How long CloudWatch keeps the API logs.
   BedrockModelId:
     Type: String
-    Default: global.anthropic.claude-sonnet-4-6
+    Default: amazon.nova-lite-v1:0
     Description: >-
-      Bedrock inference profile used for intake extraction. The function may invoke this model
-      and nothing else.
-  BedrockFoundationModelId:
-    Type: String
-    Default: anthropic.claude-sonnet-4-6
-    Description: The foundation model behind the inference profile (needed for the IAM policy).
+      Bedrock model used for intake extraction, invoked by its model id. The function may invoke
+      this model and nothing else.
   DefaultTimezone:
     Type: String
     Default: Asia/Kolkata
@@ -108,7 +104,7 @@ Resources:
           DEFAULT_TIMEZONE: !Ref DefaultTimezone
       # Least privilege. DynamoDB: exactly the calls the repositories make (transactional writes need
       # only PutItem), on this table and its indexes. Bedrock: invoking the one configured model
-      # (the Converse API is authorized by bedrock:InvokeModel), through its inference profile.
+      # (the Converse API is authorized by bedrock:InvokeModel) in this region.
       Policies:
         - Statement:
             - Sid: KaamSetuTableAccess
@@ -125,9 +121,7 @@ Resources:
               Action:
                 - bedrock:InvokeModel
               Resource:
-                - !Sub "arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/${BedrockModelId}"
-                - !Sub "arn:${AWS::Partition}:bedrock:::foundation-model/${BedrockFoundationModelId}"
-                - !Sub "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${BedrockFoundationModelId}"
+                - !Sub "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${BedrockModelId}"
       Events:
         Proxy:
           Type: HttpApi
