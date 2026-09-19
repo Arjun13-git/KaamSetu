@@ -80,7 +80,9 @@ class BedrockLLM:
             )
         except ClientError as exc:
             code = str(exc.response.get("Error", {}).get("Code", "unknown"))
-            logger.error("Bedrock call failed: %s", code)
+            detail = str(exc.response.get("Error", {}).get("Message", ""))[:400]
+            # The service's message goes to the private log for operators, never to the client.
+            logger.error("Bedrock call failed: %s: %s", code, detail)
             raise AiUnavailableError("The AI service is unavailable") from exc
         except BotoCoreError as exc:
             logger.error("Bedrock call failed: %s", type(exc).__name__)
