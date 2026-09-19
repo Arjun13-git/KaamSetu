@@ -19,8 +19,11 @@ accepts the exact interaction (forced tool call, the full inlined schema, `tempe
 input) and follows the prompt's safety and injection rules. Observed limitations, measured over 20
 varied messages:
 
-- About 15% of answers (3 of 20) contain the literal string `"null"` instead of JSON `null` in
-  optional fields, mostly for messages that name a person or mix languages. These fail schema
-  validation, are retried once, and then fall back to manual entry; nothing is lost.
+- About 15% of raw answers (3 of 20) contained the literal string `"null"` instead of JSON `null`
+  in optional fields, mostly for messages that name a person or mix languages. The Bedrock adapter
+  repairs exactly this: the exact string `"null"` becomes `None`, and only at a position the schema
+  declares nullable (`normalize_null_literals` in `app/ai/bedrock.py`). Non-nullable fields, other
+  spellings and text that merely contains the word are left alone, so validation still sees them.
+  Repaired field paths (never values) are logged so the quirk's frequency stays measurable.
 - It often sets `problem.urgency` to `normal` and confidence near 1.0 without a stated reason, so
   its confidence is less informative than a larger model's.

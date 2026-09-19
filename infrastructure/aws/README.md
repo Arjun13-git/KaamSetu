@@ -89,7 +89,8 @@ else uses it.
 - Intake uses Amazon Nova Lite (`amazon.nova-lite-v1:0`). Anthropic models on Bedrock need an AWS
   Marketplace subscription with a valid payment method and were not used. Set the `BedrockModelId`
   parameter to change the model; the grant follows it.
-- Nova Lite sometimes writes the string `"null"` instead of JSON `null` (see `ai/README.md`). Strict
-  validation rejects those answers, and intake falls back to manual entry with the request kept.
+- Nova Lite sometimes writes the string `"null"` instead of JSON `null`; the adapter repairs that
+  narrowly (see `ai/README.md`). Any other invalid answer is retried once and then falls back to
+  manual entry with the request kept.
 - OpenSearch and S3 attachments are not part of this stack yet, so photos are shown to the model and
   not stored.

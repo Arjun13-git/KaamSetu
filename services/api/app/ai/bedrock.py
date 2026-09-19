@@ -97,7 +97,11 @@ class BedrockLLM:
             usage.get("outputTokens"),
             response.get("stopReason"),
         )
-        return _tool_input(response, tool_name)
+        answer, nulled = normalize_null_literals(_tool_input(response, tool_name), schema)
+        if nulled:
+            # Field paths only: they identify the quirk without recording anything a customer wrote.
+            logger.info("Treated the string 'null' as null in: %s", ", ".join(nulled))
+        return answer
 
 
 def _tool_input(response: dict[str, Any], tool_name: str) -> dict[str, Any]:
@@ -111,3 +115,51 @@ def _tool_input(response: dict[str, Any], tool_name: str) -> dict[str, Any]:
             if isinstance(answer, dict):
                 return answer
     raise AiInvalidOutputError("The AI did not return structured output")
+
+
+def normalize_null_literals(
+    answer: dict[str, Any], schema: dict[str, Any]
+) -> tuple[dict[str, Any], list[str]]:
+    """Some models write the *string* ``"null"`` where JSON ``null`` is meant.
+
+    Replace exactly that literal with ``None``, and only at a position the schema itself declares
+    nullable. Every other value is left as it is: a non-nullable string that says "null", other
+    spellings (``"NULL"``, ``"None"``, ``" null "``), text that merely contains the word, and keys
+    the schema does not define. Returns the answer and the paths that were changed.
+    """
+    changed: list[str] = []
+
+    def walk(value: Any, node: dict[str, Any], path: str) -> Any:
+        if isinstance(value, str) and value == "null" and _accepts_null(node):
+            changed.append(path)
+            return None
+        for branch in _non_null_branches(node):
+            if isinstance(value, dict) and "properties" in branch:
+                properties = branch["properties"]
+                return {
+                    key: walk(item, properties[key], f"{path}.{key}" if path else key)
+                    if key in properties
+                    else item
+                    for key, item in value.items()
+                }
+            if isinstance(value, list) and "items" in branch:
+                return [walk(item, branch["items"], f"{path}[]") for item in value]
+        return value
+
+    normalized: dict[str, Any] = walk(answer, schema, "")
+    return normalized, changed
+
+
+def _accepts_null(node: dict[str, Any]) -> bool:
+    """Whether the schema explicitly allows JSON null here."""
+    if any(branch.get("type") == "null" for branch in node.get("anyOf", [])):
+        return True
+    declared = node.get("type")
+    return isinstance(declared, list) and "null" in declared
+
+
+def _non_null_branches(node: dict[str, Any]) -> list[dict[str, Any]]:
+    branches = node.get("anyOf")
+    if not branches:
+        return [node]
+    return [branch for branch in branches if branch.get("type") != "null"]

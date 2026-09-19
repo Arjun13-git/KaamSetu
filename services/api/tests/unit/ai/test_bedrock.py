@@ -10,34 +10,10 @@ from app.ai.factory import build_extractor
 from app.ai.provider import ImageInput
 from app.core.config import Settings
 from app.core.errors import AiInvalidOutputError, AiUnavailableError
+from tests.ai_support import FakeBedrockClient, tool_response
 
 MODEL = "test.model-id"
 SCHEMA = {"type": "object", "properties": {"x": {"type": "string"}}}
-
-
-class FakeBedrockClient:
-    def __init__(self, response: dict[str, Any] | Exception) -> None:
-        self._response = response
-        self.requests: list[dict[str, Any]] = []
-
-    def converse(self, **kwargs: Any) -> dict[str, Any]:
-        self.requests.append(kwargs)
-        if isinstance(self._response, Exception):
-            raise self._response
-        return self._response
-
-
-def _tool_response(answer: dict[str, Any], name: str = "record") -> dict[str, Any]:
-    return {
-        "output": {
-            "message": {
-                "role": "assistant",
-                "content": [{"toolUse": {"name": name, "input": answer}}],
-            }
-        },
-        "stopReason": "tool_use",
-        "usage": {"inputTokens": 100, "outputTokens": 50},
-    }
 
 
 def _call(client: FakeBedrockClient, image: ImageInput | None = None) -> dict[str, Any]:
@@ -52,7 +28,7 @@ def _call(client: FakeBedrockClient, image: ImageInput | None = None) -> dict[st
 
 
 def test_the_request_forces_one_tool_with_the_schema_and_no_randomness() -> None:
-    client = FakeBedrockClient(_tool_response({"x": "y"}))
+    client = FakeBedrockClient(tool_response({"x": "y"}))
 
     answer = _call(client)
 
@@ -68,7 +44,7 @@ def test_the_request_forces_one_tool_with_the_schema_and_no_randomness() -> None
 
 
 def test_an_image_is_sent_as_an_image_block_with_its_bytes() -> None:
-    client = FakeBedrockClient(_tool_response({"x": "y"}))
+    client = FakeBedrockClient(tool_response({"x": "y"}))
     photo = ImageInput(format="png", data=b"\x89PNG-bytes")
 
     _call(client, image=photo)
@@ -106,8 +82,8 @@ def test_a_network_timeout_is_unavailable() -> None:
     "response",
     [
         {"output": {"message": {"role": "assistant", "content": [{"text": "I refuse"}]}}},
-        _tool_response({"x": "y"}, name="some_other_tool"),
-        {**_tool_response({"x": "y"}), "stopReason": "max_tokens"},
+        tool_response({"x": "y"}, name="some_other_tool"),
+        {**tool_response({"x": "y"}), "stopReason": "max_tokens"},
         {
             "output": {
                 "message": {

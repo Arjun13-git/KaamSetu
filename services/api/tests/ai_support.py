@@ -57,3 +57,28 @@ class ScriptedLLM:
         if isinstance(step, Exception):
             raise step
         return copy.deepcopy(step)
+
+
+class FakeBedrockClient:
+    def __init__(self, response: dict[str, Any] | Exception) -> None:
+        self._response = response
+        self.requests: list[dict[str, Any]] = []
+
+    def converse(self, **kwargs: Any) -> dict[str, Any]:
+        self.requests.append(kwargs)
+        if isinstance(self._response, Exception):
+            raise self._response
+        return self._response
+
+
+def tool_response(answer: dict[str, Any], name: str = "record") -> dict[str, Any]:
+    return {
+        "output": {
+            "message": {
+                "role": "assistant",
+                "content": [{"toolUse": {"name": name, "input": answer}}],
+            }
+        },
+        "stopReason": "tool_use",
+        "usage": {"inputTokens": 100, "outputTokens": 50},
+    }
