@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: KaamSetu demo backend - HTTP API, Lambda (FastAPI via Mangum) and DynamoDB.
+
+Parameters:
+  DemoApiKey:
+    Type: String
+    NoEcho: true
+    MinLength: 32
+    Description: >-
+      Shared secret that authorizes callers of the demo API as its fixed demo identity.
+      Presented in the X-Demo-Key header. It never selects a tenant.
+  LogRetentionDays:
+    Type: Number
+    Default: 14
+    Description: How long CloudWatch keeps the API logs.
+
+Resources:
+  # Must mirror app/providers/persistence/dynamodb/table.py (a test enforces this).
+  DataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: PK, AttributeType: S }
+        - { AttributeName: SK, AttributeType: S }
+        - { AttributeName: GSI1PK, AttributeType: S }
+        - { AttributeName: GSI1SK, AttributeType: S }
+        - { AttributeName: GSI2PK, AttributeType: S }
+        - { AttributeName: GSI2SK, AttributeType: S }
+        - { AttributeName: GSI3PK, AttributeType: S }
+        - { AttributeName: GSI3SK, AttributeType: S }
+      KeySchema:
+        - { AttributeName: PK, KeyType: HASH }
+        - { AttributeName: SK, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - { AttributeName: GSI1PK, KeyType: HASH }
+            - { AttributeName: GSI1SK, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+        - IndexName: GSI2
+          KeySchema:
+            - { AttributeName: GSI2PK, KeyType: HASH }
+            - { AttributeName: GSI2SK, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+        - IndexName: GSI3
+          KeySchema:
+            - { AttributeName: GSI3PK, KeyType: HASH }
+            - { AttributeName: GSI3SK, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+
+  ApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: !Ref LogRetentionDays
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      # Cost and abuse guard for an intentionally small demo.
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 20
+        ThrottlingRateLimit: 10
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: ../../services/api/
+      Handler: app.lambda_handler.handler
+      Runtime: python3.14
+      Architectures: [x86_64]
+      MemorySize: 1024
+      Timeout: 15
+      LoggingConfig:
+        LogGroup: !Ref ApiLogGroup
+      Environment:
+        Variables:
+          APP_ENV: demo
+          DATA_PROVIDER: dynamodb
+          DYNAMODB_TABLE: !Ref DataTable
+          DEMO_API_KEY: !Ref DemoApiKey
+          DEV_BUSINESS_ID: bus_demo
+          DEV_ACTOR_ID: usr_demo
+          LOG_LEVEL: INFO
+      # Least privilege: exactly the DynamoDB calls the repositories make (transactional writes
+      # need only PutItem), on this table and its indexes.
+      Policies:
+        - Statement:
+            - Sid: KaamSetuTableAccess
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+              Resource:
+                - !GetAtt DataTable.Arn
+                - !Sub "${DataTable.Arn}/index/*"
+      Events:
+        Proxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  ApiUrl:
+    Description: Base URL of the deployed API.
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
+  TableName:
+    Description: DynamoDB table holding all application data.
+    Value: !Ref DataTable
+  FunctionName:
+    Description: Lambda function serving the API.
+    Value: !Ref ApiFunction
+  LogGroupName:
+    Description: CloudWatch log group for the API.
+    Value: !Ref ApiLogGroup
