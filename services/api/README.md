@@ -21,11 +21,38 @@ the service behaves as `production`: it accepts no caller and refuses the in-mem
 
 ## Endpoints
 
+All under `/api/v1`. Bodies never carry a business id (they are rejected if they do).
+
 | Method and path | Purpose |
 |---|---|
-| `GET /api/v1/health` | Liveness (open) |
-| `POST /api/v1/customers` | Create a customer (audited). A body naming a business is rejected |
-| `GET /api/v1/customers/{customer_id}` | Read a customer of the caller's business |
+| `GET /health` | Liveness (open) |
+| `POST /customers`, `GET /customers?q=&phone=`, `GET /customers/{id}` | Customers; search within the business |
+| `POST/GET /customers/{id}/assets`, `GET /assets/{id}` | Assets (appliances) of a customer |
+| `POST /technicians`, `GET /technicians?active_only=`, `GET /technicians/{id}` | Technicians |
+| `POST /jobs` | Create a job from operator-entered fields. Send `Idempotency-Key` to make retries safe |
+| `GET /jobs?status=&technician_id=`, `GET /jobs/{id}` | List jobs; the technician job card (customer, asset, prior service) |
+| `PATCH /jobs/{id}` | Change description, urgency or preferred slot only. Never status |
+| `POST /jobs/{id}/assign`, `POST /jobs/{id}/transition` | Assign or reassign; move forward or cancel |
+| `POST /jobs/{id}/complete` | The only route to `COMPLETED`: stores job, service event and audit atomically |
+| `GET /assets/{id}/history`, `GET /customers/{id}/history` | Recorded service, newest first |
+| `POST /intake` | Customer text (and optional photo) to a ServiceRequest, and to a job when unambiguous |
+| `GET /service-requests?status=`, `GET /service-requests/{id}` | The preserved intake records |
+| `POST /service-requests/{id}/job` | A person confirms a request as a job (also the fallback when AI is unavailable) |
+
+### Intake
+
+`POST /intake` stores the request first, then asks the model for a structured extraction that is
+validated against `ai/schemas/intake_extraction.v1.json`. Customers resolve only from explicit
+evidence (an operator-selected `customer_id`, or a phone number matching exactly one customer); a
+name alone yields candidates for a person to confirm. A job is created without a person only when
+the customer and asset are both resolved, the request has a known type and a problem, and the
+model's overall confidence is at least 0.7. Otherwise the request is `NEEDS_REVIEW` with the
+extraction and candidates visible. If the model is unavailable or answers invalidly, the request is
+`EXTRACTION_FAILED` and nothing is lost. An `Idempotency-Key` makes a retry return the same result
+without calling the model again. Safety wording (sparking, smoke, burning smell, ...) is detected
+without the model and only ever raises urgency.
+
+Configure the model with `LLM_PROVIDER=bedrock` and `LLM_MODEL=<inference profile or model id>`.
 
 ## Authentication
 

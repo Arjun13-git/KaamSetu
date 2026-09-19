@@ -11,7 +11,7 @@ client ──► API Gateway (HTTP API, throttled) ──► Lambda (python3.14,
 | Resource | Notes |
 |---|---|
 | `AWS::DynamoDB::Table` | On-demand; key layout mirrors `services/api/app/providers/persistence/dynamodb/table.py` (a test enforces it) |
-| `AWS::Lambda::Function` | Handler `app.lambda_handler.handler`; policy allows only `GetItem`, `PutItem`, `Query` on the table and its indexes |
+| `AWS::Lambda::Function` | Handler `app.lambda_handler.handler`, 28 s timeout. Policy: `GetItem`, `PutItem`, `Query` on the table and its indexes, and `bedrock:InvokeModel` on the one configured inference profile and its foundation-model ARNs (no wildcards) |
 | `AWS::ApiGatewayV2::Api` + stage | `$default` stage, 10 req/s steady, burst 20 |
 | `AWS::Logs::LogGroup` | Finite retention |
 
@@ -55,9 +55,12 @@ This is a stand-in for real authentication, intended for a demo with synthetic d
 python infrastructure/aws/smoke_test.py <ApiUrl>
 ```
 
-It checks health, that a missing or wrong key is rejected identically, that a body naming a business
-is refused, and a create/read round trip. It leaves one `Deployment Smoke Test` customer behind;
-its id is printed so it can be deleted before seeding demo data.
+It walks the whole vertical slice against the live endpoint: access control, directory records,
+idempotent job creation, assignment, transitions, completion, history, and AI intake through the
+configured model (resolution, idempotent replay, safety wording, hostile text). FAIL lines are
+application invariants; NOTE lines describe what the model chose and never fail the run. Each run
+uses its own keys and phone numbers, and leaves labelled records behind that must be removed
+before loading demo data.
 
 Load the fictional demo dataset into the deployed table (from your machine, with your own
 credentials, not the function's):
@@ -83,4 +86,7 @@ else uses it.
 - The table is on-demand with no point-in-time recovery and is deleted with the stack.
 - Lambda memory (1024 MB) and timeout (15 s) suit the current endpoints; AI calls will need a longer
   timeout.
-- OpenSearch, S3 attachments and Bedrock permissions are not part of this stack yet.
+- Bedrock needs the account's Anthropic use-case details completed once; until then intake
+  reports `manual_entry_required` (the request is kept) and the logs show `ResourceNotFoundException`.
+- OpenSearch and S3 attachments are not part of this stack yet, so photos are shown to the model and
+  not stored.

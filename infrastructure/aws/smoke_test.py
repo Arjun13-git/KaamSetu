@@ -20,11 +20,14 @@ import os
 import sys
 import urllib.error
 import urllib.request
+import uuid
 from pathlib import Path
 from typing import Any
 
 KEY_FILE = Path(os.environ.get("KAAMSETU_DEMO_KEY_FILE", "~/.config/kaamsetu/demo-api-key"))
-PHONE = "90000 99999"
+RUN = uuid.uuid4().hex[:8]  # every run uses its own keys and phone numbers, so it can be repeated
+PHONE = f"90000 9{int(RUN, 16) % 10000:04d}"
+OTHER_PHONE = f"90000 1{int(RUN, 16) % 10000:04d}"
 IST = dt.timedelta(hours=5, minutes=30)
 
 
@@ -93,7 +96,10 @@ def main(base_url: str) -> int:
         )
     )
     created["customer"] = customer.get("customer_id", "")
-    check("customer created, phone normalized", customer.get("phone") == "+919000099999")
+    check(
+        "customer created, phone normalized",
+        customer.get("phone") == "+91" + PHONE.replace(" ", ""),
+    )
     asset = data(
         client.call(
             "POST",
@@ -114,7 +120,7 @@ def main(base_url: str) -> int:
         "service_type": "repair",
         "description": "AC not cooling",
     }
-    key_header = {"Idempotency-Key": "smoke-job-1"}
+    key_header = {"Idempotency-Key": f"smoke-job-{RUN}"}
     first_status, first = client.call("POST", "/jobs", job_body, headers=key_header)
     second_status, second = client.call("POST", "/jobs", job_body, headers=key_header)
     job_id = first.get("data", {}).get("job_id", "")
@@ -163,7 +169,7 @@ def main(base_url: str) -> int:
     tomorrow = (dt.datetime.now(dt.UTC) + IST).date() + dt.timedelta(days=1)
     text = "Bhaiya LG AC phir se thanda nahi kar raha. Kal 5 ke baad aa sakte ho?"
     intake_body = {"text": text, "phone": PHONE}
-    intake_key = {"Idempotency-Key": "smoke-intake-1"}
+    intake_key = {"Idempotency-Key": f"smoke-intake-{RUN}"}
     status, out = client.call("POST", "/intake", intake_body, headers=intake_key)
     result = out.get("data", {})
     check("intake accepted (201)", status == 201, f"got {status}")
@@ -259,7 +265,7 @@ def main(base_url: str) -> int:
         in (created["customer"], None),
     )
     status, unknown = client.call(
-        "POST", "/intake", {"text": "AC not cooling", "phone": "90000 11111"}
+        "POST", "/intake", {"text": "AC not cooling", "phone": OTHER_PHONE}
     )
     review = unknown.get("data", {})
     check(
