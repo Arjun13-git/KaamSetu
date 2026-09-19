@@ -19,6 +19,7 @@ from typing import Literal
 from pydantic import Field, ValidationInfo, field_validator
 
 from app.ai.extractor import IntakeExtractor
+from app.ai.guards import detect_safety_concern
 from app.ai.provider import ImageFormat, ImageInput
 from app.ai.schemas import Intent, StoredExtraction
 from app.core.context import RequestContext
@@ -160,7 +161,8 @@ def process_intake(
             updated_at=now,
         )
         repos.service_requests.update(failed)
-        return IntakeResult(failed, None, [], False, created)
+        # Safety wording is detected without the model, so it is flagged even when AI is down.
+        return IntakeResult(failed, None, [], detect_safety_concern(data.text), created)
 
     extraction = stored.data
     customer = resolve_customer(
@@ -283,9 +285,10 @@ def _result_for(
         if asset.state is ResolutionState.EXISTING and asset.entity_id
         else []
     )
-    safety = (
+    stored_flag = (
         StoredExtraction.model_validate(request.extraction).safety_concern
         if request.extraction
         else False
     )
+    safety = stored_flag or detect_safety_concern(request.raw_text)
     return IntakeResult(request, job, history, safety, created)

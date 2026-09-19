@@ -197,12 +197,15 @@ def main(base_url: str) -> int:
         if slot:
             expected = f"{tomorrow}T11:30"
             note(f"preferred slot {slot} (tomorrow 17:00 IST would start {expected})")
-    prior = [e["event_id"] for e in result.get("prior_service", [])]
-    check(
-        "the repeat complaint surfaces the earlier recorded service",
-        prior == [event.get("event_id")],
-        f"got {prior}",
-    )
+    if result.get("outcome") == "manual_entry_required":
+        note("the model did not answer, so checks that need its extraction are skipped")
+    else:
+        prior = [e["event_id"] for e in result.get("prior_service", [])]
+        check(
+            "the repeat complaint surfaces the earlier recorded service",
+            prior == [event.get("event_id")],
+            f"got {prior}",
+        )
 
     status, replay = client.call("POST", "/intake", intake_body, headers=intake_key)
     same = replay.get("data", {}).get("service_request", {}).get("service_request_id")
@@ -222,16 +225,18 @@ def main(base_url: str) -> int:
         {"text": "AC se chingari nikal rahi hai aur jalne ki smell aa rahi hai", "phone": PHONE},
     )
     danger = out.get("data", {})
-    check("dangerous wording is flagged", danger.get("safety_concern") is True)
-    urgency = (
-        ((danger.get("service_request") or {}).get("extraction") or {})
-        .get("data", {})
-        .get("problem", {})
-        .get("urgency")
-    )
     check(
-        "urgency is safety_critical, never lowered", urgency == "safety_critical", f"got {urgency}"
+        "dangerous wording is flagged (with or without the model)",
+        danger.get("safety_concern") is True,
     )
+    extraction = ((danger.get("service_request") or {}).get("extraction") or {}).get("data")
+    if extraction:
+        urgency = extraction["problem"]["urgency"]
+        check(
+            "urgency is safety_critical, never lowered",
+            urgency == "safety_critical",
+            f"got {urgency}",
+        )
     status, out = client.call(
         "POST",
         "/intake",

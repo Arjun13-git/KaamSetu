@@ -660,3 +660,58 @@ def test_the_wire_format_never_exposes_the_tenant_or_the_key(repos: Repositories
 
     assert "business_id" not in text and TENANT not in text
     assert "secret-looking-key-1" not in text
+
+
+class TestSafetyWithoutTheModel:
+    """Safety wording must reach a person even when AI is down."""
+
+    DANGER = "AC se chingari nikal rahi hai aur jalne ki smell aa rahi hai"
+
+    def test_the_flag_is_raised_when_the_model_is_unavailable_and_on_replay(
+        self, repos: Repositories
+    ) -> None:
+        api, llm = intake_api(repos, AiUnavailableError("down"), retries=0)
+
+        first = post_intake(api, self.DANGER, key="danger-1")
+        replay = post_intake(api, self.DANGER, key="danger-1", expect=200)
+
+        assert first["outcome"] == "manual_entry_required" and first["safety_concern"] is True
+        assert replay["safety_concern"] is True
+        assert len(llm.calls) == 1
+
+    def test_ordinary_text_is_not_flagged_when_the_model_is_unavailable(
+        self, repos: Repositories
+    ) -> None:
+        api, _ = intake_api(repos, AiUnavailableError("down"), retries=0)
+
+        assert post_intake(api, "AC not cooling")["safety_concern"] is False
+
+    def test_a_manually_confirmed_dangerous_request_defaults_to_safety_critical(
+        self, repos: Repositories
+    ) -> None:
+        api, _ = intake_api(repos, AiUnavailableError("down"), retries=0)
+        customer, asset = ravi(api)
+        request = post_intake(api, self.DANGER, phone=PHONE)["service_request"]
+        path = f"/service-requests/{request['service_request_id']}/job"
+        ids = {"customer_id": customer["customer_id"], "asset_id": asset["asset_id"]}
+
+        job = api.call("POST", path, ids, expect=201)
+
+        assert job["urgency"] == "safety_critical"
+        assert job["description"] == self.DANGER  # the customer's words, no added diagnosis
+
+    def test_a_person_can_still_set_the_urgency_explicitly(self, repos: Repositories) -> None:
+        api, _ = intake_api(repos, AiUnavailableError("down"), retries=0)
+        customer, asset = ravi(api)
+        request = post_intake(api, self.DANGER, phone=PHONE)["service_request"]
+        ids = {
+            "customer_id": customer["customer_id"],
+            "asset_id": asset["asset_id"],
+            "urgency": "high",
+        }
+
+        job = api.call(
+            "POST", f"/service-requests/{request['service_request_id']}/job", ids, expect=201
+        )
+
+        assert job["urgency"] == "high"

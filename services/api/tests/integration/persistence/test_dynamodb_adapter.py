@@ -166,4 +166,5 @@ def test_store_failures_become_a_generic_storage_error_without_internals(
 
     assert "table-that-was-never-created" not in caught.value.message
     assert "ResourceNotFound" not in caught.value.message
-    assert any("DynamoDB operation failed" in record.message for record in caplog.records)
+    logged = [record.getMessage() for record in caplog.records]
+    assert any("DynamoDB operation failed: ResourceNotFoundException" in m for m in logged)

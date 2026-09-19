@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from app.ai.guards import detect_safety_concern
 from app.ai.schemas import StoredExtraction
 from app.core.context import RequestContext
 from app.core.errors import DomainValidationError
@@ -101,7 +102,8 @@ def proposed_job_fields(request: ServiceRequest, timezone: str) -> ProposedJob:
         return ProposedJob(
             service_type=ServiceType.UNKNOWN,
             description=fallback_description,
-            urgency=Urgency.NORMAL,
+            # No model was involved, so safety wording is still honoured deterministically.
+            urgency=Urgency.SAFETY_CRITICAL if detect_safety_concern(raw) else Urgency.NORMAL,
             preferred_slot=None,
             source=JobSource.MANUAL,
         )

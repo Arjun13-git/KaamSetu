@@ -91,7 +91,7 @@ def test_service_errors_become_a_generic_unavailable_error(
         _call(FakeBedrockClient(error))
 
     assert code not in caught.value.message and "secret-detail" not in caught.value.message
-    assert any(getattr(r, "aws_error", None) == code for r in caplog.records)
+    assert any(code in r.getMessage() for r in caplog.records)  # visible in the log line
 
 
 def test_a_network_timeout_is_unavailable() -> None:

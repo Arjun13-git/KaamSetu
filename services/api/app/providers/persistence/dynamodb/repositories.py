@@ -170,7 +170,7 @@ class DynamoStore:
     @staticmethod
     def _storage_error(exc: Exception) -> StorageError:
         code = _error_code(exc) if isinstance(exc, ClientError) else type(exc).__name__
-        logger.error("DynamoDB operation failed", extra={"aws_error": code})
+        logger.error("DynamoDB operation failed: %s", code)
         return StorageError("The data store could not complete the request")
 
 
