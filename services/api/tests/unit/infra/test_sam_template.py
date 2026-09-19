@@ -2,6 +2,7 @@
 suite proves, and it must not quietly grow more privilege."""
 
 import importlib.util
+import re
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -142,6 +143,18 @@ def test_the_bedrock_model_is_one_parameter_with_no_wildcard(template: dict[str,
     assert parameters["BedrockModelId"]["Default"] == "amazon.nova-lite-v1:0"
     assert "*" not in parameters["BedrockModelId"]["Default"]
     assert "BedrockFoundationModelId" not in parameters  # no second model can be authorized
+
+
+def test_the_deploy_script_passes_the_same_model_the_template_defaults_to(
+    template: dict[str, Any],
+) -> None:
+    """SAM keeps an existing stack's old parameter values, so the script must state the model."""
+    script = (AWS_DIR / "deploy.sh").read_text()
+    match = re.search(r'model_id="\$\{KAAMSETU_BEDROCK_MODEL_ID:-([^}]+)\}"', script)
+
+    assert match is not None
+    assert match.group(1) == template["Parameters"]["BedrockModelId"]["Default"]
+    assert '"BedrockModelId=$model_id"' in script
 
 
 def test_the_function_is_configured_for_bedrock_from_parameters_not_literals(

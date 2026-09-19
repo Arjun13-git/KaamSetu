@@ -15,6 +15,9 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 sam="${KAAMSETU_SAM:-sam}"
 stack="${KAAMSETU_STACK_NAME:-kaamsetu-demo}"
 key_file="${KAAMSETU_DEMO_KEY_FILE:-$HOME/.config/kaamsetu/demo-api-key}"
+# Passed explicitly on every deploy: SAM reuses an existing stack's previous parameter values, so a
+# changed template default would otherwise be silently ignored. Keep in step with the template.
+model_id="${KAAMSETU_BEDROCK_MODEL_ID:-amazon.nova-lite-v1:0}"
 export PYTHON="${PYTHON:-python3}"
 # Opt out of SAM CLI telemetry unless the caller has chosen otherwise.
 export SAM_CLI_TELEMETRY="${SAM_CLI_TELEMETRY:-0}"
@@ -39,7 +42,7 @@ cd "$here"
   --capabilities CAPABILITY_IAM \
   --no-confirm-changeset \
   --no-fail-on-empty-changeset \
-  --parameter-overrides "DemoApiKey=$demo_key" \
+  --parameter-overrides "DemoApiKey=$demo_key" "BedrockModelId=$model_id" \
   --tags project=kaamsetu environment=demo 2>&1 | sed "s/$demo_key/[redacted]/g"
 
 echo
