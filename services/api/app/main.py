@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request, Response
 from pydantic import TypeAdapter, ValidationError
 
 from app import __version__
-from app.api import assets, customers, health, history, jobs, technicians
+from app.api import assets, customers, health, history, jobs, service_requests, technicians
 from app.api.errors import register_exception_handlers
 from app.core.clock import Clock, system_clock
 from app.core.config import Settings
@@ -69,6 +69,7 @@ def create_app(
         assets.router,
         jobs.router,
         history.router,
+        service_requests.router,
     ):
         app.include_router(router, prefix="/api/v1")
     return app
