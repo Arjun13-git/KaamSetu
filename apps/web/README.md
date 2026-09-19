@@ -3,10 +3,10 @@
 Next.js frontend skeleton.
 
 Planned views:
-- Dashboard
-- Intake
-- Jobs
-- Customers
-- Customer detail
-- Asset detail
+- Dispatcher dashboard
+- Conversation intake
+- Job board
+- Customer and asset history
 - Technician workspace
+
+Design contracts live in `../../System-Design/`.

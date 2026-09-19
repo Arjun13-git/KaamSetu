@@ -1,11 +1,17 @@
 # KaamSetu API
 
-Python/FastAPI service skeleton.
+FastAPI service implementing the domain/application layer.
 
-Responsibilities:
-- API contracts
-- authorization
-- domain services
-- provider interfaces
-- AI workflow orchestration
-- persistence adapters
+## Run
+
+```bash
+cd services/api
+python -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
+uvicorn app.main:app --reload
+```
+
+Health: `GET /api/v1/health`
+
+Implementation must follow `../../System-Design/`.
