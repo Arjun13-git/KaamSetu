@@ -80,7 +80,7 @@ app/providers/    persistence adapters: memory, dynamodb (behind app/domain/repo
 app/api/          HTTP layer: envelope, error mapping, dependencies, routes
 app/lambda_handler.py  AWS Lambda entry point (Mangum)
 scripts/          Lambda package build (used by `sam build`)
-seed/             synthetic demo data
+seed/             deterministic, idempotent demo dataset (see seed/README.md)
 tests/            unit tests + an adapter-agnostic persistence contract suite
 ```
 

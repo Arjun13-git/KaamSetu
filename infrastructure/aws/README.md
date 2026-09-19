@@ -63,12 +63,15 @@ uses its own keys and phone numbers, and leaves labelled records behind that mus
 before loading demo data.
 
 Load the fictional demo dataset into the deployed table (from your machine, with your own
-credentials, not the function's):
+credentials, not the function's). It is deterministic and idempotent; see `services/api/seed/README.md`
+for what it contains and the five demo scenarios:
 
 ```bash
 cd services/api
 AWS_PROFILE=<profile> AWS_REGION=<region> DATA_PROVIDER=dynamodb \
-  DYNAMODB_TABLE=<TableName> python -m seed
+  DYNAMODB_TABLE=<TableName> python -m seed            # load, then verify
+AWS_PROFILE=<profile> AWS_REGION=<region> DATA_PROVIDER=dynamodb \
+  DYNAMODB_TABLE=<TableName> python -m seed --verify   # read-only check
 ```
 
 ## Tear down
