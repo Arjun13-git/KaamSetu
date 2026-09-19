@@ -17,7 +17,22 @@ Health: `GET /api/v1/health` returns `{"data": {"status": "ok", "version": "..."
 Errors use `{"error": {"code", "message", "details"}, "request_id"}`.
 
 Configuration is read from environment variables (see `../../.env.example`). If `APP_ENV` is unset
-the service behaves as `production`: it refuses the development identity and the in-memory provider.
+the service behaves as `production`: it accepts no caller and refuses the in-memory provider.
+
+## Endpoints
+
+| Method and path | Purpose |
+|---|---|
+| `GET /api/v1/health` | Liveness (open) |
+| `POST /api/v1/customers` | Create a customer (audited). A body naming a business is rejected |
+| `GET /api/v1/customers/{customer_id}` | Read a customer of the caller's business |
+
+## Authentication
+
+Until real authentication exists there is one fixed identity (`DEV_BUSINESS_ID`, `DEV_ACTOR_ID`),
+chosen by `APP_ENV`: open in `development`/`test`, only for holders of `DEMO_API_KEY` (sent as
+`X-Demo-Key`) in `demo`, and refused in `production`. The tenant is never read from a header, query
+string or body.
 
 ## Checks
 
@@ -34,6 +49,8 @@ app/core/         config, ids, clock, errors, request context
 app/domain/       entities, job state machine + workflow, repository ports
 app/providers/    persistence adapters: memory, dynamodb (behind app/domain/repositories.py)
 app/api/          HTTP layer: envelope, error mapping, dependencies, routes
+app/lambda_handler.py  AWS Lambda entry point (Mangum)
+scripts/          Lambda package build (used by `sam build`)
 seed/             synthetic demo data
 tests/            unit tests + an adapter-agnostic persistence contract suite
 ```
@@ -61,5 +78,9 @@ DATA_PROVIDER=dynamodb DYNAMODB_ENDPOINT_URL=http://localhost:8000 python -m see
   an audit record atomically. `PATCH`-style amendments cannot change status, technician or schedule.
 - Tenant identity comes from the server-side `Actor`, never from a client-supplied header or body.
   Until real authentication exists that actor is a fixed development identity.
+
+## Deployment
+
+The same app runs on AWS Lambda behind API Gateway; see `../../infrastructure/aws/README.md`.
 
 Implementation must follow the engineering specification kept locally by the project owner.
