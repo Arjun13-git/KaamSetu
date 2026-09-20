@@ -74,7 +74,9 @@ export function TechnicianPanel({ technician }: { technician: Technician | null 
         <>
           <p className="flex items-center gap-2 text-base font-semibold">
             <UserRound className="size-4 text-ink-3" aria-hidden />
-            {technician.name}
+            <Link href={`/technicians/${technician.technician_id}`} className="hover:underline">
+              {technician.name}
+            </Link>
             {technician.active ? null : <Badge>Inactive</Badge>}
           </p>
           {technician.phone ? <p className="mt-1 text-sm text-ink-2">{formatPhone(technician.phone)}</p> : null}
