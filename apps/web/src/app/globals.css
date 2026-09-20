@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+/*
+ * KaamSetu design tokens. Each accent has exactly one meaning, so colour tells you what you are
+ * looking at:  teal = brand and progress · blue = AI-derived · amber = recorded service memory ·
+ * crimson = safety-critical. Do not reuse them for anything else.
+ */
+@theme {
+  --color-canvas: #f6f4ef;
+  --color-surface: #ffffff;
+  --color-sunken: #f0ede6;
+  --color-line: #e6e2d9;
+  --color-line-strong: #d5d0c4;
+
+  --color-ink: #1b1f24;
+  --color-ink-2: #4b535c;
+  --color-ink-3: #66707a;
+
+  --color-brand: #0e6b63;
+  --color-brand-strong: #0a524c;
+  --color-brand-tint: #e4f2f0;
+
+  --color-ai: #2f5de0;
+  --color-ai-strong: #2447b4;
+  --color-ai-tint: #e8eefc;
+  --color-ai-line: #c4d3f7;
+
+  --color-memory: #b7791f;
+  --color-memory-ink: #7a4e0c;
+  --color-memory-paper: #fbf1dc;
+  --color-memory-line: #ecd6a2;
+
+  --color-safety: #c62828;
+  --color-safety-strong: #a01f1f;
+  --color-safety-tint: #fdecea;
+  --color-safety-line: #f3b9b3;
+
+  --color-ok: #2f7d4f;
+  --color-ok-tint: #e6f3ea;
+  --color-warn-tint: #fdf3dd;
+
+  --color-st-new: #64748b;
+  --color-st-assigned: #2f5de0;
+  --color-st-scheduled: #5b4bd6;
+  --color-st-way: #0e7aa6;
+  --color-st-progress: #0e6b63;
+  --color-st-done: #2f7d4f;
+  --color-st-cancelled: #8d867a;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-card: 0.75rem;
+  --shadow-card: 0 1px 2px rgb(27 31 36 / 0.04), 0 1px 3px rgb(27 31 36 / 0.05);
+  --shadow-pop: 0 8px 28px rgb(27 31 36 / 0.12), 0 2px 6px rgb(27 31 36 / 0.06);
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    color-scheme: light;
+  }
+  body {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    background: var(--color-canvas);
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  ::selection {
+    background: var(--color-brand-tint);
+  }
+}
+
+/* The intake result appears in the order the work happened. CSS only, and off for reduced motion. */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@layer utilities {
+  .reveal {
+    animation: reveal 220ms ease-out both;
+    animation-delay: calc(var(--i, 0) * 120ms);
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--color-sunken) 25%, #f7f5f0 50%, var(--color-sunken) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .skeleton {
+    animation: none;
+  }
+  * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
