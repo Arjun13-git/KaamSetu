@@ -68,3 +68,28 @@ store the phone typed at intake, so the app keeps it per request in an `httpOnly
 Labels state only what is recorded: `Seeded example` (a hand-written demo reading, model id
 `seed-fixture`), `AI intake` (a real model reading), `No AI reading`. They are derived in the UI; the
 API's `source` values are unchanged.
+
+## Demo walkthrough (about three minutes)
+
+Start from a pristine dataset (`scripts/local-stack.sh up`, or the seeded deployed table). Every
+message and phone number below is on the New request page as a one-click demo message.
+
+| Time | Do this | What it shows |
+|---|---|---|
+| 0:00 | Open the **Board** | Every status, one safety-critical job pinned, one request waiting for review |
+| 0:20 | **New request** › *Repeat AC complaint* › Turn into a job | Customer by phone → appliance → **Service Memory** (two recorded services) → AI reading → job |
+| 1:00 | **Open job** | The customer's words next to what the AI read and the job; the memory beside the work |
+| 1:20 | *Which AC?* › Review and confirm › pick the LG | Two candidate appliances: no guessing, a person confirms |
+| 1:45 | *Unknown customer* › Review and confirm | New customer and appliance, added by a person, then the job |
+| 2:05 | *Safety-critical* | Crimson treatment, the report kept as the customer wrote it, no diagnosis |
+| 2:20 | Assign the first job to Imran, then open **Technicians › Imran** | The technician's queue: on the way, start, complete |
+| 2:45 | **Customers › Ravi Kumar** | The LG AC's memory has grown to three services |
+
+Colours have one meaning each (teal brand, blue AI, amber recorded service, crimson safety), and the
+UI says when a reading is a hand-written seeded example rather than AI output.
+
+## Accessibility and motion
+
+Keyboard operable throughout (skip link, visible focus rings, native dialogs that trap and return
+focus). Secondary text meets WCAG AA contrast on every background it appears on. With
+`prefers-reduced-motion` the staged reveal, spinners and shimmer are switched off.
