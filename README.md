@@ -74,7 +74,7 @@ A small service business rarely receives work as structured data. It receives it
 
 KaamSetu does not replace WhatsApp or established field-service platforms. It addresses the step before them: turning what customers actually write into work, and remembering what was done.
 
-## 2. Our Solution
+## 2. Solution
 
 KaamSetu is an **unstructured-first service management** system. The starting point is the customer's own words (and optionally a photo). Everything else is derived from them, checked, and recorded.
 
