@@ -93,3 +93,12 @@ export function friendlyMessage(failure: ApiFailure): string {
         : failure.message;
   }
 }
+
+/** Await a read and get a value back either way, so a page can render the failure inline. */
+export async function attempt<T>(work: Promise<T>): Promise<Result<T>> {
+  try {
+    return { ok: true, data: await work };
+  } catch (error) {
+    return { ok: false, error: toFailure(error) };
+  }
+}
