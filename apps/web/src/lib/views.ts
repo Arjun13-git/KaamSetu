@@ -3,12 +3,16 @@
 // the timezone, the clock, or any configuration. Everything here is pure and unit-tested.
 
 import type { IntakeOutcome, JobStatus, ResolutionState, ServiceEvent, Urgency } from "./api/types.ts";
-import { describeTimePreference, formatDate, relativeTime, assetTypeLabel } from "./format.ts";
+import { describeTimePreference, formatDate, relativeTime, assetTypeLabel, spanLabel } from "./format.ts";
 import type { ParsedExtraction } from "./extraction.ts";
 
 export interface MemoryEventView {
   id: string;
   jobId: string;
+  /** The instant the service was recorded, for the <time> element. */
+  iso: string;
+  /** How long before this one the previous recorded service was ("5 months"); null for the oldest. */
+  earlierBy: string | null;
   dateLabel: string;
   agoLabel: string;
   work: string;
@@ -35,6 +39,8 @@ export function toMemoryEvent(
   return {
     id: event.event_id,
     jobId: event.job_id,
+    iso: event.timestamp,
+    earlierBy: null,
     dateLabel: formatDate(event.timestamp, tz),
     agoLabel: relativeTime(event.timestamp, now),
     work: event.work_performed,
@@ -59,7 +65,10 @@ export function toMemory(
   return {
     assetId,
     assetLabel,
-    events: ordered.map((e) => toMemoryEvent(e, technicianNames.get(e.technician_id) ?? null, tz, now)),
+    events: ordered.map((e, i) => ({
+      ...toMemoryEvent(e, technicianNames.get(e.technician_id) ?? null, tz, now),
+      earlierBy: ordered[i + 1] ? spanLabel(e.timestamp, ordered[i + 1].timestamp) : null,
+    })),
     lastServiceAgo: ordered[0] ? relativeTime(ordered[0].timestamp, now) : null,
   };
 }

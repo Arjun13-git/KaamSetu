@@ -203,6 +203,19 @@ export function formatPhone(phone: string | null): string | null {
   return match ? `+91 ${match[1]} ${match[2]}` : phone;
 }
 
+/**
+ * The time between two instants in coarse, honest units: "same day", "12 days", "5 months",
+ * "1.5 years". Used to show how far apart recorded services were.
+ */
+export function spanLabel(newer: string, older: string): string {
+  const days = Math.floor((Date.parse(newer) - Date.parse(older)) / DAY);
+  if (days < 1) return "same day";
+  if (days < 60) return `${days} ${days === 1 ? "day" : "days"}`;
+  if (days < 365) return `${Math.round(days / 30.44)} months`;
+  const years = Math.round((days / 365) * 10) / 10;
+  return `${years} ${years === 1 ? "year" : "years"}`;
+}
+
 export function plural(count: number, one: string, many = `${one}s`): string {
   return `${count} ${count === 1 ? one : many}`;
 }

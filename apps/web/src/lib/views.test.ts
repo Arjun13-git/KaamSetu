@@ -39,6 +39,8 @@ test("service memory is newest first and names only what was recorded", () => {
   assert.equal(memory.events[0].dateLabel, "6 Aug 2026");
   assert.equal(memory.events[0].technician, "Imran Sheikh");
   assert.equal(memory.lastServiceAgo, "44 days ago");
+  assert.deepEqual(memory.events.map((e) => e.earlierBy), ["5 months", null]);
+  assert.equal(memory.events[0].iso, "2026-08-06T11:30:00Z");
 });
 
 test("a technician who is no longer listed does not break the record", () => {

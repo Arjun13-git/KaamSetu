@@ -9,6 +9,7 @@ import {
   formatPhone,
   formatSlot,
   relativeTime,
+  spanLabel,
   utcToZonedInput,
   zonedToUtc,
 } from "./format.ts";
@@ -67,4 +68,13 @@ test("phone numbers are grouped only when they have the expected shape", () => {
   assert.equal(formatPhone("+919000020001"), "+91 90000 20001");
   assert.equal(formatPhone("12345"), "12345");
   assert.equal(formatPhone(null), null);
+});
+
+test("the span between two services is coarse and never negative", () => {
+  assert.equal(spanLabel("2026-08-06T11:30:00Z", "2026-08-06T05:00:00Z"), "same day");
+  assert.equal(spanLabel("2026-08-06T11:30:00Z", "2026-08-05T11:30:00Z"), "1 day");
+  assert.equal(spanLabel("2026-08-06T11:30:00Z", "2026-07-22T11:30:00Z"), "15 days");
+  assert.equal(spanLabel("2026-08-06T11:30:00Z", "2026-02-22T11:30:00Z"), "5 months");
+  assert.equal(spanLabel("2026-08-06T11:30:00Z", "2025-02-06T11:30:00Z"), "1.5 years");
+  assert.equal(spanLabel("2026-08-06T11:30:00Z", "2026-08-07T11:30:00Z"), "same day");
 });
