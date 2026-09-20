@@ -43,5 +43,15 @@ with Node's built-in test runner.
 
 ## Screens
 
-Board · New request (AI intake) · Job detail · Customers with per-appliance Service Memory. The
-technician queue and the review flows for ambiguous and new customers follow.
+| Route | What it shows |
+|---|---|
+| `/` | Job board: a column per active status, safety-critical jobs pinned in crimson, requests waiting for review, finished work in a collapsed lane |
+| `/intake` | A customer's message becomes: customer → appliance → Service Memory → AI understanding → job |
+| `/jobs/[id]` | Progress, the customer's words next to what the AI read, lifecycle actions, and the appliance's Service Memory |
+| `/customers`, `/customers/[id]` | Customers, and each of their appliances with its own recorded service history |
+
+Colour has one meaning each: **teal** brand and progress, **blue** anything the AI produced,
+**amber** recorded service (Service Memory), **crimson** safety-critical. Recorded history is shown
+as history, never as a diagnosis.
+
+Still to build: the review flows for ambiguous and new-customer requests, and the technician queue.
