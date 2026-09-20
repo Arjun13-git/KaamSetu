@@ -26,6 +26,20 @@ export function PipelinePreview() {
           </Stage>
         ))}
       </ol>
+      <ul aria-label="What the colours mean" className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs text-ink-2">
+        <li className="flex items-center gap-1.5">
+          <span aria-hidden className="size-2.5 rounded-full bg-ai" /> Written by the AI, to be checked
+        </li>
+        <li className="flex items-center gap-1.5">
+          <span aria-hidden className="size-2.5 rounded-full bg-memory" /> Recorded service history
+        </li>
+        <li className="flex items-center gap-1.5">
+          <span aria-hidden className="size-2.5 rounded-full bg-brand" /> Decided by KaamSetu or a person
+        </li>
+        <li className="flex items-center gap-1.5">
+          <span aria-hidden className="size-2.5 rounded-full bg-safety" /> Safety-critical
+        </li>
+      </ul>
     </div>
   );
 }

@@ -1,17 +1,28 @@
 import { CircleAlert, Info } from "lucide-react";
 
-import { AiTag, ConfidenceMeter, ProvenanceChip, UnknownValue } from "@/components/ui/Ai";
+import { AiTag, ConfidenceMeter, ProvenanceChip, SeededTag, UnknownValue } from "@/components/ui/Ai";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { cn } from "@/lib/cn";
 import { assetTypeLabel, sentenceCase } from "@/lib/format";
 import { missingLabel, type ParsedExtraction } from "@/lib/extraction";
 
-function Row({ label, source, children }: { label: string; source?: ParsedExtraction["data"]["sources"][string]; children: React.ReactNode }) {
+function Row({
+  label,
+  source,
+  muted,
+  children,
+}: {
+  label: string;
+  source?: ParsedExtraction["data"]["sources"][string];
+  muted?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <div className="min-w-0">
       <dt className="flex items-center gap-1.5 text-xs text-ink-3">
         {label}
-        {source ? <ProvenanceChip source={source} /> : null}
+        {source ? <ProvenanceChip source={source} muted={muted} /> : null}
       </dt>
       <dd className="mt-0.5 text-sm text-ink">{children}</dd>
     </div>
@@ -32,6 +43,7 @@ export function UnderstandingCard({
   safety: boolean;
 }) {
   const { data } = extraction;
+  const seeded = extraction.isFixture;
   const sources = data.sources;
   const typeKnown = data.asset.type !== "unknown";
   const urgencyLabel = safety
@@ -41,36 +53,35 @@ export function UnderstandingCard({
       : null;
 
   return (
-    <Card className="border-ai-line p-4">
+    <Card className={cn("p-4", seeded ? "border-dashed border-line-strong shadow-none" : "border-ai-line")}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <AiTag />
-        {extraction.isFixture ? <Badge>Seeded example</Badge> : null}
+        {seeded ? <SeededTag /> : <AiTag />}
       </div>
 
       <dl className="mt-4 grid gap-x-6 gap-y-3.5 sm:grid-cols-2">
-        <Row label="Appliance" source={sources["asset.type"]}>
+        <Row muted={seeded} label="Appliance" source={sources["asset.type"]}>
           {typeKnown ? assetTypeLabel(data.asset.type).replace(/^./, (c) => c.toUpperCase()) : <UnknownValue />}
         </Row>
-        <Row label="Brand" source={sources["asset.brand"]}>
+        <Row muted={seeded} label="Brand" source={sources["asset.brand"]}>
           {data.asset.brand ?? <UnknownValue />}
         </Row>
-        <Row label="Model" source={sources["asset.model"]}>
+        <Row muted={seeded} label="Model" source={sources["asset.model"]}>
           {data.asset.model ?? <UnknownValue />}
         </Row>
-        <Row label="Type of work" source={sources["service_type"]}>
+        <Row muted={seeded} label="Type of work" source={sources["service_type"]}>
           {data.serviceType !== "unknown" ? sentenceCase(data.serviceType) : <UnknownValue />}
         </Row>
         <div className="sm:col-span-2">
-          <Row label="Problem, as reported" source={sources["problem.description"]}>
+          <Row muted={seeded} label="Problem, as reported" source={sources["problem.description"]}>
             {data.problem.description ?? <UnknownValue />}
           </Row>
         </div>
         <div className="sm:col-span-2">
-          <Row label="Symptoms" source={sources["problem.symptoms"]}>
+          <Row muted={seeded} label="Symptoms" source={sources["problem.symptoms"]}>
             {data.problem.symptoms.length > 0 ? (
               <span className="flex flex-wrap gap-1.5">
                 {data.problem.symptoms.map((symptom) => (
-                  <Badge key={symptom} tone="ai">
+                  <Badge key={symptom} tone={seeded ? "neutral" : "ai"}>
                     {symptom}
                   </Badge>
                 ))}
@@ -80,19 +91,19 @@ export function UnderstandingCard({
             )}
           </Row>
         </div>
-        <Row label="Urgency" source={sources["problem.urgency"]}>
+        <Row muted={seeded} label="Urgency" source={sources["problem.urgency"]}>
           {urgencyLabel ?? <UnknownValue />}
         </Row>
-        <Row label="Preferred time" source={sources["time_preference"]}>
+        <Row muted={seeded} label="Preferred time" source={sources["time_preference"]}>
           {timeLabel ?? <UnknownValue />}
         </Row>
       </dl>
 
       <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 sm:grid-cols-4">
-        <ConfidenceMeter label="Overall" value={data.confidence.overall} />
-        <ConfidenceMeter label="Appliance" value={data.confidence.asset} />
-        <ConfidenceMeter label="Problem" value={data.confidence.problem} />
-        <ConfidenceMeter label="Schedule" value={data.confidence.schedule} />
+        <ConfidenceMeter label="Overall" value={data.confidence.overall} muted={seeded} />
+        <ConfidenceMeter label="Appliance" value={data.confidence.asset} muted={seeded} />
+        <ConfidenceMeter label="Problem" value={data.confidence.problem} muted={seeded} />
+        <ConfidenceMeter label="Schedule" value={data.confidence.schedule} muted={seeded} />
       </div>
 
       {data.missingInformation.length > 0 ? (

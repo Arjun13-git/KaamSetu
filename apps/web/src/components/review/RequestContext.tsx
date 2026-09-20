@@ -1,7 +1,7 @@
 import { CircleAlert } from "lucide-react";
 
 import { UnderstandingCard } from "@/components/intake/UnderstandingCard";
-import { AiTag } from "@/components/ui/Ai";
+import { AiTag, SeededTag } from "@/components/ui/Ai";
 import { Badge } from "@/components/ui/Badge";
 import { Card, SectionLabel } from "@/components/ui/Card";
 import { SafetyBanner } from "@/components/ui/Safety";
@@ -44,8 +44,8 @@ export function RequestContext({
           </p>
         </div>
         {understood ? (
-          <div className="bg-ai-tint/60 px-4 py-3">
-            <AiTag>Understood as</AiTag>
+          <div className={origin.kind === "seeded" ? "bg-surface px-4 py-3" : "bg-ai-tint/60 px-4 py-3"}>
+            {origin.kind === "seeded" ? <SeededTag /> : <AiTag>Understood as</AiTag>}
             <p className="mt-1.5 font-medium text-ink">{understood}</p>
           </div>
         ) : (

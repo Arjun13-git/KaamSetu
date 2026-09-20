@@ -116,12 +116,13 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
               timeLabel={extraction ? describeTimePreference(extraction.data.timePreference, tz, now) : null}
               safety={extraction?.safetyConcern ?? false}
               jobDescription={job.description}
+              origin={origin}
             />
           ) : null}
 
           <ServiceMemoryRail
             memory={memory}
-            current={{ label: open ? "This job" : "This job (now recorded)", text: job.description }}
+            current={open ? { label: "This job", text: job.description } : undefined}
             recalledLabel={open ? "Recalled for this job" : undefined}
             highlightJobId={job.job_id}
           />
