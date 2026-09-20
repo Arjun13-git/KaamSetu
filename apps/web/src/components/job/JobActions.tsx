@@ -33,7 +33,7 @@ function Problem({ failure }: { failure: ApiFailure | null }) {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm placeholder:text-ink-3 focus:border-brand focus:outline-none";
+  "w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm placeholder:text-ink-3 focus:border-brand";
 
 /**
  * Lifecycle buttons for one job. Which buttons appear is a hint from the job's status; the API is the

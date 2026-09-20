@@ -6,8 +6,8 @@ import { NeedsAttention } from "@/components/board/NeedsAttention";
 import { StatusColumn } from "@/components/board/StatusColumn";
 import { TechnicianFilter } from "@/components/board/TechnicianFilter";
 import { LinkButton } from "@/components/ui/Button";
-import { PageHeader } from "@/components/ui/Card";
-import { ErrorPanel, Skeleton } from "@/components/ui/States";
+import { Card, PageHeader } from "@/components/ui/Card";
+import { EmptyState, ErrorPanel, Skeleton } from "@/components/ui/States";
 import { api } from "@/lib/api/endpoints";
 import { attempt } from "@/lib/api/errors";
 import { buildBoard } from "@/lib/board";
@@ -55,6 +55,14 @@ async function Board({ technicianId }: { technicianId: string | null }) {
           </>
         }
       />
+      {jobs.data.length === 0 ? (
+        <Card className="mb-6">
+          <EmptyState
+            title="No jobs yet"
+            hint="Paste a customer's message on the New request page and KaamSetu will turn it into the first job."
+          />
+        </Card>
+      ) : null}
       <NeedsAttention attention={board.attention} />
       <div className="mb-4">
         <TechnicianFilter technicians={[...technicians.values()]} selected={technicianId} />

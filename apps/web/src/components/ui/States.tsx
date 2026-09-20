@@ -29,13 +29,23 @@ export function EmptyState({
 }
 
 /** A failed read or write, in plain language, with the request id a developer would ask for. */
-export function ErrorPanel({ failure, title = "Could not load this" }: { failure: ApiFailure; title?: string }) {
+export function ErrorPanel({
+  failure,
+  title = "Could not load this",
+  level = 1,
+}: {
+  failure: ApiFailure;
+  title?: string;
+  /** 1 when the failure replaces the whole page, 2 when the page already has its own heading. */
+  level?: 1 | 2;
+}) {
+  const Heading = level === 1 ? "h1" : "h2";
   return (
     <Card className="border-safety-line p-6" role="alert">
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 size-5 shrink-0 text-safety" />
         <div className="min-w-0">
-          <p className="font-medium">{title}</p>
+          <Heading className="font-medium">{title}</Heading>
           <p className="mt-1 text-ink-2">{friendlyMessage(failure)}</p>
           {failure.requestId ? (
             <p className="mt-2 font-mono text-xs text-ink-3">

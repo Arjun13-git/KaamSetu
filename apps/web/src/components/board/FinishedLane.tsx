@@ -9,7 +9,7 @@ export function FinishedLane({ finished }: { finished: BoardView["finished"] }) 
   if (completed.length + cancelled.length === 0) return null;
   return (
     <details className="group mt-6 rounded-(--radius-card) border border-line bg-surface shadow-card">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 select-none">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 select-none">
         <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-semibold">
           Finished
           <span className="flex items-center gap-1.5 font-normal text-ink-2">

@@ -120,7 +120,7 @@ export function UnderstandingCard({
       ) : null}
 
       <details className="group mt-4 border-t border-line pt-3 text-xs text-ink-3">
-        <summary className="flex cursor-pointer list-none items-center gap-1.5 select-none hover:text-ink-2">
+        <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 select-none hover:text-ink-2">
           <Info className="size-3.5" aria-hidden />
           How this was produced
         </summary>

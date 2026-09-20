@@ -223,7 +223,7 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
                 </div>
 
                 <details open={cr.state === "new" || cr.state === "unresolved"} className="rounded-lg border border-line">
-                  <summary className="cursor-pointer px-3.5 py-2.5 text-sm font-medium select-none hover:bg-sunken">
+                  <summary className="flex min-h-11 cursor-pointer items-center px-3.5 py-2.5 text-sm font-medium select-none hover:bg-sunken">
                     {cr.state === "new" ? "Nobody on file matches: add them as a new customer" : "Not in the list? Add a new customer"}
                   </summary>
                   <div className="border-t border-line p-3.5">
@@ -264,7 +264,7 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
                   <p className="text-sm text-ink-2">{customer.name} has no appliances on file yet.</p>
                 )}
                 <details open={assetCandidates.length === 0 || ar.state === "new"} className="rounded-lg border border-line">
-                  <summary className="cursor-pointer px-3.5 py-2.5 text-sm font-medium select-none hover:bg-sunken">
+                  <summary className="flex min-h-11 cursor-pointer items-center px-3.5 py-2.5 text-sm font-medium select-none hover:bg-sunken">
                     {ar.state === "new" ? "This looks like a new appliance: add it" : "Not listed? Add a new appliance"}
                   </summary>
                   <div className="border-t border-line p-3.5">

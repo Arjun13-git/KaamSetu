@@ -57,8 +57,14 @@ export function failureFromBody(status: number, body: unknown, requestId: string
   };
 }
 
+export const CONFIG = "CONFIG_ERROR";
+
 export function toFailure(error: unknown): ApiFailure {
   if (error instanceof ApiError) return error.failure;
+  // Server configuration problems name the missing setting (never its value), so they are safe to show.
+  if (error instanceof Error && error.name === "ConfigError") {
+    return { code: CONFIG, message: error.message, status: 500, requestId: null, fields: [] };
+  }
   const message = error instanceof Error ? error.message : "Something went wrong";
   return { code: "INTERNAL_ERROR", message, status: 500, requestId: null, fields: [] };
 }
@@ -68,6 +74,8 @@ export function friendlyMessage(failure: ApiFailure): string {
   switch (failure.code) {
     case NETWORK:
       return "KaamSetu could not reach the service. Check the connection and try again.";
+    case CONFIG:
+      return "This app is not set up to reach the KaamSetu service. Check the server configuration (API address and key).";
     case TIMEOUT:
       return "The service took too long to answer. Nothing was lost; try again.";
     case "UNAUTHORIZED":

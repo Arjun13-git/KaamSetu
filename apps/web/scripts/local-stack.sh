@@ -47,7 +47,9 @@ if [ "${LLM:-bedrock}" = "bedrock" ]; then
 else
   export LLM_PROVIDER=disabled
 fi
-nohup uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8101 >"$state/api.log" 2>&1 &
+# own session, so the API outlives the shell that started it
+launcher=$(command -v setsid || true)
+${launcher:+$launcher }nohup uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8101 >"$state/api.log" 2>&1 &
 echo $! >"$state/api.pid"
 sleep 3
 curl -fsS http://127.0.0.1:8101/api/v1/health && echo

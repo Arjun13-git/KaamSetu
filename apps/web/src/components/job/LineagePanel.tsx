@@ -56,7 +56,7 @@ export function LineagePanel({
       </div>
       {extraction ? (
         <details className="mt-3 border-t border-line pt-3">
-          <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-ink-2 select-none hover:text-ink">
+          <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 text-sm font-medium text-ink-2 select-none hover:text-ink">
             <AiTag>Everything the AI read</AiTag>
             <span className="text-xs font-normal text-ink-3">Fields, confidence and what is still unknown</span>
           </summary>

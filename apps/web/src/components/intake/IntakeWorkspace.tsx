@@ -99,7 +99,7 @@ export function IntakeWorkspace({ initialPhone = "" }: { initialPhone?: string }
                     changed();
                   }}
                   placeholder="90000 20001"
-                  className="h-10 w-full rounded-lg border border-line-strong bg-surface pr-3 pl-9 text-sm placeholder:text-ink-3 focus:border-brand focus:outline-none"
+                  className="h-10 w-full rounded-lg border border-line-strong bg-surface pr-3 pl-9 text-sm placeholder:text-ink-3 focus:border-brand"
                 />
               </div>
               {fieldErrors.phone ? <p className="mt-1 text-sm text-safety-strong">{fieldErrors.phone}</p> : null}
@@ -120,7 +120,7 @@ export function IntakeWorkspace({ initialPhone = "" }: { initialPhone?: string }
                 rows={5}
                 maxLength={4000}
                 placeholder="Paste a WhatsApp message, in any language…"
-                className="w-full resize-y rounded-lg border border-line-strong bg-surface px-3 py-2.5 text-[15px] leading-6 placeholder:text-ink-3 focus:border-brand focus:outline-none"
+                className="w-full resize-y rounded-lg border border-line-strong bg-surface px-3 py-2.5 text-[15px] leading-6 placeholder:text-ink-3 focus:border-brand"
               />
               {fieldErrors.text ? <p className="mt-1 text-sm text-safety-strong">{fieldErrors.text}</p> : null}
             </div>
@@ -204,7 +204,18 @@ export function IntakeWorkspace({ initialPhone = "" }: { initialPhone?: string }
         </div>
       </div>
 
-      <div className="min-w-0" aria-live="polite">
+      <div className="min-w-0">
+        <p role="status" className="sr-only">
+          {pending
+            ? "Reading the message"
+            : state.status === "done"
+              ? state.view.job
+                ? "Done. A job was created."
+                : "Done. This request needs a person to review it."
+              : state.status === "error"
+                ? "The request could not be processed."
+                : ""}
+        </p>
         {pending ? (
           <Card className="p-5">
             <div className="flex items-center gap-3">
@@ -226,7 +237,7 @@ export function IntakeWorkspace({ initialPhone = "" }: { initialPhone?: string }
         ) : state.status === "done" ? (
           <ResultPipeline key={state.view.serviceRequestId} view={state.view} />
         ) : state.status === "error" ? (
-          <ErrorPanel failure={state.failure} title="The request could not be processed" />
+          <ErrorPanel failure={state.failure} title="The request could not be processed" level={2} />
         ) : (
           <PipelinePreview />
         )}

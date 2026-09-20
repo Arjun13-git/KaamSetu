@@ -60,7 +60,7 @@ export function RequestContext({
       {safety ? <SafetyBanner /> : null}
       {extraction ? (
         <details className="group rounded-(--radius-card) border border-line bg-surface shadow-card">
-          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-ink-2 select-none hover:text-ink">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center px-4 py-3 text-sm font-medium text-ink-2 select-none hover:text-ink">
             Everything the AI read <span className="font-normal text-ink-3">· fields, confidence, what is unknown</span>
           </summary>
           <div className="border-t border-line p-3">

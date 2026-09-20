@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Technicians" };
 
 async function TechnicianList() {
   const [technicians, jobs] = await Promise.all([attempt(api.technicians()), attempt(api.jobs({ limit: 200 }))]);
-  if (!technicians.ok) return <ErrorPanel failure={technicians.error} title="Technicians could not be loaded" />;
+  if (!technicians.ok) return <ErrorPanel failure={technicians.error} title="Technicians could not be loaded" level={2} />;
   if (technicians.data.length === 0) {
     return (
       <Card>

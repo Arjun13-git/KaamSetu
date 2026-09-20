@@ -43,6 +43,7 @@ export function AutoRefresh() {
       <Button
         variant="ghost"
         size="sm"
+        className="max-sm:h-10 max-sm:px-3"
         aria-label="Refresh the board"
         onClick={() =>
           startTransition(() => {

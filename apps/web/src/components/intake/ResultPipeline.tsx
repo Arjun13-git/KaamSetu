@@ -37,7 +37,7 @@ export function ResultPipeline({ view }: { view: IntakeView }) {
         </div>
       </Card>
 
-      {critical ? <SafetyBanner /> : null}
+      {critical ? <SafetyBanner announce /> : null}
 
       <ol>
         <Stage index={1} tone="brand">

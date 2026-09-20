@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Customers" };
 
 async function CustomerList({ query }: { query: string }) {
   const [customers, jobs] = await Promise.all([attempt(api.customers({ q: query || undefined })), attempt(api.jobs({ limit: 200 }))]);
-  if (!customers.ok) return <ErrorPanel failure={customers.error} title="Customers could not be loaded" />;
+  if (!customers.ok) return <ErrorPanel failure={customers.error} title="Customers could not be loaded" level={2} />;
 
   const open = new Map<string, number>();
   const served = new Map<string, number>();
@@ -70,7 +70,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
             defaultValue={query}
             placeholder="Search by name"
             aria-label="Search customers by name"
-            className="h-10 w-full rounded-lg border border-line-strong bg-surface pr-3 pl-9 text-sm placeholder:text-ink-3 focus:border-brand focus:outline-none"
+            className="h-10 w-full rounded-lg border border-line-strong bg-surface pr-3 pl-9 text-sm placeholder:text-ink-3 focus:border-brand"
           />
         </div>
         <Button type="submit" variant="secondary">

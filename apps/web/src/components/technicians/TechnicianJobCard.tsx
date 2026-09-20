@@ -100,7 +100,7 @@ export function TechnicianJobCard({
         <p className="mt-1.5 text-xs text-memory-ink">Recorded work, not a diagnosis of the current problem.</p>
         {memory.events.length > 1 ? (
           <details className="mt-2">
-            <summary className="cursor-pointer text-sm font-medium text-memory-ink select-none">Full history</summary>
+            <summary className="flex min-h-10 cursor-pointer items-center text-sm font-medium text-memory-ink select-none">Full history</summary>
             <div className="mt-2">
               <ServiceMemoryRail memory={memory} />
             </div>
