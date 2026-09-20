@@ -5,7 +5,6 @@ import { FinishedLane } from "@/components/board/FinishedLane";
 import { NeedsAttention } from "@/components/board/NeedsAttention";
 import { StatusColumn } from "@/components/board/StatusColumn";
 import { TechnicianFilter } from "@/components/board/TechnicianFilter";
-import { LinkButton } from "@/components/ui/Button";
 import { Card, PageHeader } from "@/components/ui/Card";
 import { EmptyState, ErrorPanel, Skeleton } from "@/components/ui/States";
 import { api } from "@/lib/api/endpoints";
@@ -47,12 +46,7 @@ async function Board({ technicianId }: { technicianId: string | null }) {
         title="Job board"
         subtitle={`${plural(board.openCount, "open job")} · ${board.attention.review.length} waiting for review`}
         actions={
-          <>
-            <AutoRefresh />
-            <LinkButton href="/intake" variant="secondary">
-              New request
-            </LinkButton>
-          </>
+          <AutoRefresh />
         }
       />
       {jobs.data.length === 0 ? (

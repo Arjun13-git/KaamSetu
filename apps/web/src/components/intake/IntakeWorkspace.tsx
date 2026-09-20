@@ -27,6 +27,7 @@ export function IntakeWorkspace({ initialPhone = "" }: { initialPhone?: string }
   const [sent, setSent] = useState<{ text: string; phone: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const fileInput = useRef<HTMLInputElement>(null);
+  const results = useRef<HTMLDivElement>(null);
 
   const changed = () => setKey(newKey());
 
@@ -69,6 +70,11 @@ export function IntakeWorkspace({ initialPhone = "" }: { initialPhone?: string }
     data.set("key", key);
     if (photo) data.set("photo", photo);
     setSent({ text: text.trim(), phone: phone.trim() });
+    // On a phone the result sits below the form and the demo messages: bring it into view.
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      results.current?.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" });
+    }
     startTransition(async () => {
       setState(await submitIntake(state, data));
     });
@@ -204,7 +210,7 @@ export function IntakeWorkspace({ initialPhone = "" }: { initialPhone?: string }
         </div>
       </div>
 
-      <div className="min-w-0">
+      <div ref={results} className="min-w-0 scroll-mt-20">
         <p role="status" className="sr-only">
           {pending
             ? "Reading the message"

@@ -35,7 +35,7 @@ export function Dialog({
         if (event.target === ref.current) onClose();
       }}
       aria-labelledby={titleId}
-      className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-(--radius-card) border border-line bg-surface p-0 text-ink shadow-pop backdrop:bg-ink/40"
+      className="m-auto max-h-[calc(100dvh-2rem)] w-[min(32rem,calc(100vw-2rem))] overflow-y-auto rounded-(--radius-card) border border-line bg-surface p-0 text-ink shadow-pop backdrop:bg-ink/40"
     >
       {open ? (
         <div className="p-5">
