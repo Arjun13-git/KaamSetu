@@ -15,9 +15,9 @@ import { ResultPipeline } from "./ResultPipeline";
 const newKey = () => crypto.randomUUID();
 const MAX_PHOTO_BYTES = 3_500_000;
 
-export function IntakeWorkspace() {
+export function IntakeWorkspace({ initialPhone = "" }: { initialPhone?: string }) {
   const [text, setText] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(initialPhone);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoProblem, setPhotoProblem] = useState<string | null>(null);
   // One key per distinct message. Submitting the same message again (a retry after a network error,
