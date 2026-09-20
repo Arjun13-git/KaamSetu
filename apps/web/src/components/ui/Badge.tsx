@@ -60,7 +60,7 @@ export function StatusChip({ status }: { status: JobStatus }) {
 
 export function UrgencyChip({ urgency }: { urgency: Urgency }) {
   if (urgency === "safety_critical") return <Badge tone="safety">Safety-critical</Badge>;
-  if (urgency === "high") return <Badge tone="memory">High urgency</Badge>;
+  if (urgency === "high") return <Badge className="border-ink-3 text-ink">High urgency</Badge>;
   if (urgency === "low") return <Badge tone="neutral">Low urgency</Badge>;
   return null;
 }
