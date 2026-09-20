@@ -5,10 +5,12 @@ import { Badge, StatusChip, UrgencyChip } from "@/components/ui/Badge";
 import { buttonClass } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
+import { reviewUrl } from "@/lib/review";
 import type { IntakeView } from "@/lib/views";
 
 /** The end of the chain: a job exists, or the reason a person still has to decide something. */
 export function JobOutcomeCard({ view }: { view: IntakeView }) {
+  const reviewHref = reviewUrl(view.serviceRequestId, { phone: view.phone });
   if (view.job) {
     const job = view.job;
     const critical = job.urgency === "safety_critical";
@@ -51,6 +53,10 @@ export function JobOutcomeCard({ view }: { view: IntakeView }) {
           The request is saved exactly as it was written, so nothing is lost. A person can create the job by hand.
         </p>
         {view.failureReason ? <p className="mt-2 font-mono text-xs text-ink-3">{view.failureReason}</p> : null}
+        <Link href={reviewHref} className={buttonClass("primary", "md", "mt-4")}>
+          Review and create the job
+          <ArrowRight className="size-4" aria-hidden />
+        </Link>
       </Card>
     );
   }
@@ -71,6 +77,10 @@ export function JobOutcomeCard({ view }: { view: IntakeView }) {
         KaamSetu does not guess. The message and what was understood are saved as request{" "}
         <span className="font-mono">{view.serviceRequestId.slice(-8)}</span>.
       </p>
+      <Link href={reviewHref} className={buttonClass("primary", "md", "mt-4")}>
+        Review and confirm
+        <ArrowRight className="size-4" aria-hidden />
+      </Link>
     </Card>
   );
 }

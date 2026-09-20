@@ -2,6 +2,7 @@
 // the API leaves as ids) and returns columns of display-ready cards. It decides nothing about jobs.
 
 import type { Asset, Customer, Job, JobStatus, ServiceRequest, Technician } from "./api/types.ts";
+import { parseExtraction } from "./extraction.ts";
 import { applianceLabel, formatSlot, initials, relativeTime } from "./format.ts";
 import { BOARD_STATUSES } from "./status.ts";
 
@@ -25,6 +26,8 @@ export interface ReviewRow {
   text: string;
   reason: string;
   ageLabel: string;
+  /** The reading is a hand-written demo fixture, not something a model produced. */
+  seeded: boolean;
 }
 
 export interface BoardView {
@@ -124,6 +127,7 @@ export function buildBoard(
           text: r.raw_text,
           reason: reviewReason(r),
           ageLabel: relativeTime(r.created_at, now),
+          seeded: parseExtraction(r.extraction)?.isFixture === true,
         })),
     },
     openCount: open.length,

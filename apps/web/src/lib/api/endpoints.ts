@@ -5,6 +5,7 @@ import type {
   Asset,
   AssetHistory,
   CompletionBody,
+  ConfirmJobBody,
   Customer,
   CustomerHistory,
   Health,
@@ -14,6 +15,8 @@ import type {
   JobCard,
   JobCompletionResult,
   JobStatus,
+  NewAssetBody,
+  NewCustomerBody,
   ServiceRequest,
   ServiceRequestStatus,
   Technician,
@@ -71,6 +74,11 @@ export const api = {
     apiWrite<Job>("POST", `/jobs/${jobId}/transition`, { body }),
   completeJob: (jobId: string, body: CompletionBody) =>
     apiWrite<JobCompletionResult>("POST", `/jobs/${jobId}/complete`, { body }),
+  confirmRequest: (requestId: string, body: ConfirmJobBody) =>
+    apiWrite<Job>("POST", `/service-requests/${requestId}/job`, { body }),
+  createCustomer: (body: NewCustomerBody) => apiWrite<Customer>("POST", "/customers", { body }),
+  createAsset: (customerId: string, body: NewAssetBody) =>
+    apiWrite<Asset>("POST", `/customers/${customerId}/assets`, { body }),
   amendJob: (jobId: string, body: { urgency?: Urgency; description?: string }) =>
     apiWrite<Job>("PATCH", `/jobs/${jobId}`, { body }),
 };

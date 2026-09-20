@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import type { ServiceEvent } from "./api/types.ts";
 import { parseExtraction } from "./extraction.ts";
-import { reviewReasons, toMemory, understoodAs } from "./views.ts";
+import { provenance, reviewReasons, toMemory, understoodAs } from "./views.ts";
 
 const TZ = "Asia/Kolkata";
 const NOW = new Date("2026-09-20T06:00:00Z");
@@ -81,4 +81,17 @@ test("review reasons follow the recorded resolution states", () => {
   assert.deepEqual(reviewReasons("needs_review", "existing", "existing"), [
     "The AI was not confident enough to create the job unattended",
   ]);
+});
+
+test("provenance never presents seeded or absent readings as AI output", () => {
+  const reading = (modelId: string) =>
+    parseExtraction({
+      model_id: modelId,
+      data: { intent: "service_request", asset: {}, problem: {}, time_preference: {}, confidence: {} },
+    });
+  assert.deepEqual(provenance("intake", reading("seed-fixture")), { label: "Seeded example", kind: "seeded" });
+  assert.deepEqual(provenance("intake", reading("amazon.nova-lite-v1:0")), { label: "AI intake", kind: "ai" });
+  assert.deepEqual(provenance("manual", null), { label: "No AI reading", kind: "none" });
+  // the request could not be read: fall back to what the job itself records
+  assert.deepEqual(provenance("intake", undefined), { label: "From intake", kind: "intake" });
 });

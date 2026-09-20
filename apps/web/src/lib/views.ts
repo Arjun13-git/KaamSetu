@@ -146,3 +146,23 @@ export function reviewReasons(
   }
   return reasons;
 }
+
+export interface Provenance {
+  label: string;
+  kind: "seeded" | "ai" | "none" | "intake";
+}
+
+/**
+ * Where a job or request came from, stated from what is recorded and nothing more. The demo dataset
+ * carries hand-written readings labelled `seed-fixture`; those are shown as seeded examples, never
+ * as something a model produced. `extraction` is undefined when the request could not be read.
+ */
+export function provenance(
+  source: "intake" | "manual",
+  extraction: ParsedExtraction | null | undefined,
+): Provenance {
+  if (extraction?.isFixture) return { label: "Seeded example", kind: "seeded" };
+  if (extraction) return { label: "AI intake", kind: "ai" };
+  if (extraction === undefined) return { label: source === "intake" ? "From intake" : "No AI reading", kind: "intake" };
+  return { label: "No AI reading", kind: "none" };
+}

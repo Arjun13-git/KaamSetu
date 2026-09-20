@@ -19,7 +19,7 @@ import { describeTimePreference, applianceLabel, formatDateTime, formatSlot, loc
 import { parseExtraction } from "@/lib/extraction";
 import { technicianMap, technicianNames } from "@/lib/lookups";
 import { nextActions } from "@/lib/status";
-import { toMemory, understoodAs } from "@/lib/views";
+import { provenance, toMemory, understoodAs } from "@/lib/views";
 
 export const metadata: Metadata = { title: "Job" };
 
@@ -45,6 +45,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   const memory = toMemory(asset.asset_id, label, events, technicianNames(technicians), tz, now);
   const ownEvent = events.find((event) => event.job_id === job.job_id);
   const extraction = request?.ok ? parseExtraction(request.data.extraction) : null;
+  const origin = provenance(job.source, request === null ? null : request.ok ? extraction : undefined);
   const critical = job.urgency === "safety_critical" || extraction?.safetyConcern === true;
   const open = job.status !== "COMPLETED" && job.status !== "CANCELLED";
 
@@ -62,7 +63,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
         <div className="mb-2 flex flex-wrap items-center gap-2">
           <StatusChip status={job.status} />
           <UrgencyChip urgency={job.urgency} />
-          <Badge>{job.source === "intake" ? "From intake" : "Entered manually"}</Badge>
+          <Badge tone={origin.kind === "ai" ? "ai" : "neutral"}>{origin.label}</Badge>
           <span className="font-mono text-xs text-ink-3">{job.job_id}</span>
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-balance">{job.description}</h1>

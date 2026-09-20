@@ -208,3 +208,26 @@ export interface TransitionBody {
   to_status: JobStatus;
   scheduled_slot?: TimeSlot | null;
 }
+
+export interface NewCustomerBody {
+  name: string;
+  phone?: string | null;
+  address?: string | null;
+}
+
+export interface NewAssetBody {
+  asset_type: AssetType;
+  brand?: string | null;
+  model?: string | null;
+  location?: string | null;
+}
+
+/** A person's decision to turn a request into a job. Omitted fields fall back to the API's proposal. */
+export interface ConfirmJobBody {
+  customer_id: string;
+  asset_id: string;
+  service_type?: ServiceType | null;
+  description?: string | null;
+  urgency?: Urgency | null;
+  preferred_slot?: TimeSlot | null;
+}

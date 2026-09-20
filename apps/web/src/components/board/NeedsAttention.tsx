@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ChevronRight, MessageSquareWarning, ShieldAlert } from "lucide-react";
 
 import { Badge } from "@/components/ui/Badge";
@@ -34,26 +35,22 @@ export function NeedsAttention({ attention }: { attention: BoardView["attention"
             <SectionLabel>Waiting for review · {review.length}</SectionLabel>
           </div>
           <p className="mb-3 px-1 text-sm text-ink-2">Requests KaamSetu would not turn into a job without a person.</p>
-          <ul className="divide-y divide-line">
-            {review.map((row) => {
-              const inner = (
-                <>
+          <ul className="space-y-0.5">
+            {review.map((row) => (
+              <li key={row.id}>
+                <Link href={`/requests/${row.id}`} className="-mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-2 hover:bg-sunken">
                   <div className="min-w-0">
                     <p className="line-clamp-1 text-sm">“{row.text}”</p>
-                    <p className="mt-0.5 flex items-center gap-2 text-xs text-ink-3">
+                    <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-ink-3">
                       <Badge>{row.reason}</Badge>
+                      {row.seeded ? <Badge>Seeded example</Badge> : null}
                       {row.ageLabel}
                     </p>
                   </div>
                   <ChevronRight className="size-4 shrink-0 text-ink-3" aria-hidden />
-                </>
-              );
-              return (
-                <li key={row.id} className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
-                  {inner}
-                </li>
-              );
-            })}
+                </Link>
+              </li>
+            ))}
           </ul>
         </Card>
       ) : null}

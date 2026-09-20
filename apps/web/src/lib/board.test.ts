@@ -135,3 +135,21 @@ test("review reasons are readable", () => {
   assert.equal(reviewReason({ ...base, customer_resolution: res("existing"), asset_resolution: res("ambiguous") }), "Which appliance?");
   assert.equal(reviewReason({ ...base, status: "EXTRACTION_FAILED", customer_resolution: res("new"), asset_resolution: res("new") }), "The AI could not read this");
 });
+
+test("review rows say when the reading is a seeded fixture, never presenting it as AI output", () => {
+  const request = (modelId: string) =>
+    ({
+      service_request_id: `srq_${modelId.length}`,
+      status: "NEEDS_REVIEW",
+      raw_text: "hi",
+      extraction: { model_id: modelId, data: { intent: "service_request", asset: {}, problem: {}, time_preference: {}, confidence: {} } },
+      customer_resolution: { state: "new", entity_id: null, candidates: [] },
+      asset_resolution: { state: "new", entity_id: null, candidates: [] },
+      created_at: "2026-09-19T10:00:00Z",
+    }) as unknown as ServiceRequest;
+  const board = buildBoard([], [request("seed-fixture"), request("amazon.nova-lite-v1:0")], lookups, { tz: TZ, now: NOW });
+  assert.deepEqual(
+    board.attention.review.map((r) => r.seeded).sort(),
+    [false, true],
+  );
+});

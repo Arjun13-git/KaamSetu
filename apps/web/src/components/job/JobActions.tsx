@@ -46,6 +46,7 @@ export function JobActions({
   currentTechnicianId,
   defaultSlot,
   customerName,
+  large,
 }: {
   jobId: string;
   actions: JobAction[];
@@ -53,6 +54,8 @@ export function JobActions({
   currentTechnicianId: string | null;
   defaultSlot: string;
   customerName: string;
+  /** Bigger tap targets, for a technician on a phone. */
+  large?: boolean;
 }) {
   const router = useRouter();
   const [dialog, setDialog] = useState<DialogKind>(null);
@@ -106,6 +109,8 @@ export function JobActions({
       <Button
         key={action.label}
         variant={isPrimary ? "primary" : action.kind === "cancel" ? "danger" : "secondary"}
+        size={large ? "lg" : undefined}
+        className={large ? "min-w-40 flex-1" : undefined}
         onClick={() => press(action)}
         disabled={pending}
       >
@@ -130,13 +135,25 @@ export function JobActions({
             <label
               key={tech.id}
               className={cn(
-                "flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5",
-                technicianId === tech.id ? "border-brand bg-brand-tint" : "border-line hover:bg-sunken",
+                "flex items-center gap-3 rounded-lg border px-3 py-2.5",
+                !tech.active
+                  ? "cursor-not-allowed border-line bg-sunken/60 text-ink-3"
+                  : technicianId === tech.id
+                    ? "cursor-pointer border-brand bg-brand-tint"
+                    : "cursor-pointer border-line hover:bg-sunken",
               )}
             >
-              <input type="radio" name="technician" value={tech.id} checked={technicianId === tech.id} onChange={() => setTechnicianId(tech.id)} className="accent-(--color-brand)" />
+              <input
+                type="radio"
+                name="technician"
+                value={tech.id}
+                checked={technicianId === tech.id}
+                disabled={!tech.active}
+                onChange={() => setTechnicianId(tech.id)}
+                className="accent-(--color-brand)"
+              />
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium">
+                <span className={cn("block text-sm font-medium", !tech.active && "text-ink-3")}>
                   {tech.name}
                   {tech.id === currentTechnicianId ? <span className="ml-2 text-xs font-normal text-ink-3">current</span> : null}
                 </span>

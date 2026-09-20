@@ -4,6 +4,7 @@ import { api } from "@/lib/api/endpoints";
 import { toFailure, type ApiFailure } from "@/lib/api/errors";
 import { getTimezone } from "@/lib/config";
 import { buildIntakeView } from "@/lib/intake-view";
+import { rememberPhone } from "@/lib/phone-memory";
 import type { IntakeBody } from "@/lib/api/types";
 import type { IntakeView } from "@/lib/views";
 
@@ -49,6 +50,8 @@ export async function submitIntake(_previous: IntakeState, formData: FormData): 
 
   try {
     const result = await api.intake(body, key);
+    // The API does not keep this phone number; the review flow needs it if the request is held.
+    await rememberPhone(result.service_request.service_request_id, phone);
     return { status: "done", view: await buildIntakeView(result, { phone }, getTimezone(), new Date()) };
   } catch (error) {
     return { status: "error", failure: toFailure(error) };
