@@ -49,9 +49,22 @@ with Node's built-in test runner.
 | `/intake` | A customer's message becomes: customer → appliance → Service Memory → AI understanding → job |
 | `/jobs/[id]` | Progress, the customer's words next to what the AI read, lifecycle actions, and the appliance's Service Memory |
 | `/customers`, `/customers/[id]` | Customers, and each of their appliances with its own recorded service history |
+| `/requests/[id]` | Review of a request KaamSetu would not turn into a job by itself: confirm the customer, the appliance, then create the job |
+| `/technicians`, `/technicians/[id]` | Workload per technician, and a mobile-first queue with the moves a technician can make |
 
 Colour has one meaning each: **teal** brand and progress, **blue** anything the AI produced,
 **amber** recorded service (Service Memory), **crimson** safety-critical. Recorded history is shown
 as history, never as a diagnosis.
 
-Still to build: the review flows for ambiguous and new-customer requests, and the technician queue.
+### Review flow notes
+
+The whole state of a review is in the URL (`?customer=&asset=&phone=`), and each step (add customer,
+add appliance, create job) commits on its own, so retries cannot duplicate records. The API does not
+store the phone typed at intake, so the app keeps it per request in an `httpOnly` cookie
+(`ks_intake_phones`, 7 days, at most 12 requests) and in the review URL.
+
+### Provenance labels
+
+Labels state only what is recorded: `Seeded example` (a hand-written demo reading, model id
+`seed-fixture`), `AI intake` (a real model reading), `No AI reading`. They are derived in the UI; the
+API's `source` values are unchanged.
